@@ -5,7 +5,7 @@ Based on [processwire.dev](https://github.com/MoritzLost/ProcessWireDev/blob/mas
 
 ## What It Does
 
-- Downloads ProcessWire, RockMigrations, and RockShell
+- Downloads [ProcessWire](https://github.com/processwire/processwire/), [RockMigrations](https://github.com/baumrock/RockMigrations), and [RockShell](https://github.com/baumrock/RockShell)
 - Installs ProcessWire in `/public` (via RockShell)
 - Installs the RockMigrations module
 - Cleans up leftover files from the core
