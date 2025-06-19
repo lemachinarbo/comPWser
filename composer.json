@@ -1,0 +1,54 @@
+{
+  "name": "lemachinarbo/project",
+  "type": "project",
+  "require": {
+    "php": ">=8.0",
+    "processwire/processwire": "^3.0"
+  },
+  "scripts": {
+    "post-install-cmd": [
+      "@setup-processwire",
+      "@setup-rockmigrations",
+      "@setup-rockshell",
+      "@post-setup"
+    ],
+    "post-update-cmd": [
+      "@setup-processwire", 
+      "@setup-rockmigrations",
+      "@setup-rockshell",
+      "@post-setup"
+    ],
+    "setup-processwire": [
+      "echo 'Setting up ProcessWire...'",
+      "[ ! -f public/index.php ] && mkdir -p public && cp -r vendor/processwire/processwire/* public/ || echo 'ProcessWire already exists'",
+      "[ ! -d public/site ] && cp -r public/site-blank public/site && rm -rf public/site-blank || echo 'Site folder exists'",
+      "echo 'ProcessWire setup complete'"
+    ],
+    "setup-rockmigrations": [
+      "[ ! -d public/site/modules/RockMigrations ] && git clone https://github.com/baumrock/RockMigrations.git public/site/modules/RockMigrations || echo 'RockMigrations already exists'"
+    ],
+    "setup-rockshell": [
+      "[ ! -d RockShell ] && git clone -b dev https://github.com/lemachinarbo/RockShell.git RockShell || echo 'RockShell already exists'"
+    ],
+    "post-setup": [
+      "echo 'Running RockShell setup...'",
+      "[ -f RockShell/rock ] && php RockShell/rock pw:installer --lazy || echo 'RockShell command not available'",
+      "echo 'Installing RockMigrations...'",
+      "[ -f RockShell/rock ] && php RockShell/rock module:install -m RockMigrations  || echo 'RockShell command not available'",
+      "echo 'Refreshing modules...'",
+      "[ -f RockShell/rock ] && php RockShell/rock pw:refresh || echo 'RockShell command not available'",
+      "echo 'Cleaning up ProcessWire files...'",
+      "@cleanup-processwire",
+      "echo 'Setup complete!'"
+    ],
+    "cleanup-processwire": [
+      "[ -f public/README.md ] && rm public/README.md || echo 'README.md not found'",
+      "[ -f public/CONTRIBUTING.md ] && rm public/CONTRIBUTING.md || echo 'CONTRIBUTING.md not found'",
+      "[ -f public/LICENSE.TXT ] && rm public/LICENSE.TXT || echo 'LICENSE.TXT not found'",
+      "[ -f public/composer.json ] && rm public/composer.json || echo 'ProcessWire composer.json not found'",
+      "[ -f public/.gitattributes ] && rm public/.gitattributes || echo 'ProcessWire .gitattributes not found'",
+      "[ -f public/htaccess.txt ] && rm public/htaccess.txt || echo 'ProcessWire htaccess.txt not found'",
+      "echo 'ProcessWire cleanup complete'"
+    ]
+  }
+}
