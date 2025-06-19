@@ -29,7 +29,7 @@ That's it.
 To install ProcessWire, I am using [PWInstaller](https://github.com/lemachinarbo/RockShell/blob/d80ed6427a2dd5098d78286a7ba8ae81142d4fe6/App/Commands/PwInstaller.php), a variation of [Bernhard's installer](https://github.com/baumrock/RockShell/blob/21d6808c35fbbcbf192f05b3fd3d88fa96b2b7cf/App/Commands/PwInstall.php) that allows you to skip the prompts and install ProcessWire using the default settings. If you want an interactive ProcessWire installation, simply remove the `--lazy` parameter in the `composer.json` file
 
 ```
-[ -f RockShell/rock ] && php RockShell/rock pw:installer ~~--lazy~~ || echo 'RockShell command not available'
+[ -f RockShell/rock ] && php RockShell/rock pw:installer --lazy || echo 'RockShell command not available'
 ```
 
 like this:
