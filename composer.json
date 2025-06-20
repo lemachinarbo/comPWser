@@ -6,7 +6,20 @@
     "processwire/processwire": "^3.0"
   },
   "scripts": {
+    "clone-setup": [
+      "echo 'Cloning setup repository...'",
+      "git clone --branch dev https://github.com/lemachinarbo/comPWser.git comPWser || { echo 'git clone failed, aborting.'; exit 1; }"
+    ],
+    "move-setup-files": [
+      "echo 'Moving setup files from comPWser to project root...'",
+      "find comPWser -mindepth 1 -maxdepth 1 ! -name composer.json ! -name README.md -exec bash -c 'if [ ! -e \"./$(basename {})\" ]; then mv \"{}\" ./; else echo \"Skipping $(basename {}) (already exists)\"; fi' \\;",
+      "mv comPWser/.* . 2>/dev/null || true",
+      "echo 'Cleaning up comPWser folder...'",
+      "rm -rf comPWser"
+    ],
     "post-install-cmd": [
+      "@clone-setup",
+      "@move-setup-files",
       "@setup-processwire",
       "@setup-rockmigrations",
       "@setup-rockshell",
@@ -47,6 +60,10 @@
       "echo 'Config-local.php setup complete.'",
       "echo '\\n==== Cleaning up ProcessWire files ===='",
       "@cleanup-processwire",
+      "echo 'Replacing bootstrap composer.json with clean template...'",
+      "mv .build/composer.template.json ./composer.json",
+      "echo 'Removing bootstrap composer.lock file...'",
+      "rm -f composer.lock",
       "echo '\\nSetup complete!\\n'"
     ],
     "cleanup-processwire": [
