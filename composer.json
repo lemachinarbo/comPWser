@@ -17,6 +17,12 @@
       "echo 'Cleaning up comPWser folder...'",
       "rm -rf comPWser"
     ],
+    "move-to-root": [
+      "echo 'Moving all contents from comPWser to project root...'",
+      "find comPWser -mindepth 1 -maxdepth 1 -exec mv -t . {} +",
+      "echo 'Cleaning up comPWser folder...'",
+      "rmdir comPWser"
+    ],
     "post-install-cmd": [
       "@clone-setup",
       "@move-setup-files",
