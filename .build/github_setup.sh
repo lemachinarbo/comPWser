@@ -1,0 +1,118 @@
+#!/bin/bash
+
+# github_setup.sh
+#
+# Automates the setup of GitHub Actions repository variables and secrets for deployment using the GitHub CLI (gh).
+#
+# Requirements:
+#   - gh (GitHub CLI) installed and authenticated (https://cli.github.com/)
+#   - .env file with the following variables (or you will be prompted):
+#       SSH_HOST      # Your server's hostname (e.g. example.com)
+#       SSH_USER      # SSH username for your server
+#       DEPLOY_PATH   # Path to your website on the server (e.g. /var/www/example.com)
+#       PW_ROOT       # ProcessWire root path (e.g. public)
+#       GITHUB_OWNER  # GitHub username or organization
+#       GITHUB_REPO   # GitHub repository name
+#       CI_TOKEN      # (Optional) GitHub Personal Access Token for CI (will be prompted if not set)
+#
+# Usage:
+#   1. Ensure gh is installed and authenticated (run: gh auth login).
+#   2. Fill out .env or run the script and follow prompts.
+#   3. Run: ./github_setup.sh
+#
+# This script will:
+#   - Load variables from .env or prompt for them
+#   - Use ~/.ssh/id_github as the default SSH key (or prompt for another)
+#   - Generate KNOWN_HOSTS from SSH_HOST
+#   - Upload variables and secrets to your GitHub repository using gh
+#   - Prompt for CI_TOKEN if not set, and upload as a secret
+
+# Dependency check for gh
+if ! command -v gh >/dev/null 2>&1; then
+  echo "Error: GitHub CLI (gh) is not installed. Please install it and rerun this script."
+  echo -e "\nInstallation instructions: \nhttps://github.com/cli/cli#installation\n"
+  exit 1
+fi
+
+# Load variables from .env if present
+if [ -f .env ]; then
+  echo "Loading variables from .env file..."
+  source .env
+fi
+
+# 1. SSH_KEY (id_github by default, prompt if not found)
+SSH_KEY_PATH="$HOME/.ssh/id_github"
+if [ ! -f "$SSH_KEY_PATH" ]; then
+  read -p "SSH private key not found at $SSH_KEY_PATH. Enter path to your SSH private key: " SSH_KEY_PATH
+fi
+if [ ! -f "$SSH_KEY_PATH" ]; then
+  echo "Error: SSH key not found at $SSH_KEY_PATH. Exiting."
+  exit 1
+fi
+SSH_KEY_CONTENT=$(cat "$SSH_KEY_PATH")
+
+# 2. KNOWN_HOSTS (generate from SSH_HOST)
+if [ -z "$SSH_HOST" ]; then
+  read -p "Enter your SSH_HOST (e.g. example.com): " SSH_HOST
+fi
+KNOWN_HOSTS=$(ssh-keyscan "$SSH_HOST" 2>/dev/null)
+if [ -z "$KNOWN_HOSTS" ]; then
+  echo "Error: Could not generate KNOWN_HOSTS for $SSH_HOST. Exiting."
+  exit 1
+fi
+
+# 3. SSH_USER
+if [ -z "$SSH_USER" ]; then
+  read -p "Enter your SSH_USER: " SSH_USER
+fi
+
+# 4. DEPLOY_PATH
+if [ -z "$DEPLOY_PATH" ]; then
+  read -p "Enter your DEPLOY_PATH: " DEPLOY_PATH
+fi
+
+# 5. GITHUB_OWNER
+if [ -z "$GITHUB_OWNER" ]; then
+  read -p "Enter your GitHub repository owner (username or org): " GITHUB_OWNER
+fi
+
+# 6. GITHUB_REPO
+if [ -z "$GITHUB_REPO" ]; then
+  read -p "Enter your GitHub repository name: " GITHUB_REPO
+fi
+
+# 7. PW_ROOT
+if [ -z "$PW_ROOT" ]; then
+  read -p "Enter your PW_ROOT (ProcessWire root path, e.g. public): " PW_ROOT
+fi
+
+REPO_FULL="$GITHUB_OWNER/$GITHUB_REPO"
+
+echo -e "\nSummary of values to be uploaded to GitHub:"
+echo "- SSH_KEY: $SSH_KEY_PATH"
+echo "- KNOWN_HOSTS: (generated for $SSH_HOST)"
+echo "- SSH_HOST: $SSH_HOST"
+echo "- SSH_USER: $SSH_USER"
+echo "- DEPLOY_PATH: $DEPLOY_PATH"
+echo "- PW_ROOT: $PW_ROOT"
+echo "- GITHUB_OWNER: $GITHUB_OWNER"
+echo "- GITHUB_REPO: $GITHUB_REPO"
+
+echo -e "\nUploading repository variables to GitHub..."
+gh variable set SSH_HOST --body "$SSH_HOST" --repo "$REPO_FULL"
+gh variable set SSH_USER --body "$SSH_USER" --repo "$REPO_FULL"
+gh variable set DEPLOY_PATH --body "$DEPLOY_PATH" --repo "$REPO_FULL"
+gh variable set PW_ROOT --body "$PW_ROOT" --repo "$REPO_FULL"
+echo -e "Repository variables upload complete."
+
+echo -e "\nUploading repository secrets to GitHub..."
+gh secret set SSH_KEY --body "$SSH_KEY_CONTENT" --repo "$REPO_FULL"
+gh secret set KNOWN_HOSTS --body "$KNOWN_HOSTS" --repo "$REPO_FULL"
+if [ -z "$CI_TOKEN" ]; then
+  read -s -p "Enter your CI_TOKEN (GitHub Personal Access Token for CI): " CI_TOKEN
+  echo
+fi
+gh secret set CI_TOKEN --body "$CI_TOKEN" --repo "$REPO_FULL"
+echo -e "Repository secrets upload complete."
+
+echo -e "\nAll GitHub Actions variables and secrets have been processed."
