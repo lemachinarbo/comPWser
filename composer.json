@@ -19,9 +19,9 @@
       "@post-setup"
     ],
     "setup-processwire": [
-      "echo 'Setting up ProcessWire...'",
+      "echo '\\n==== Setting up ProcessWire ===='",
       "[ ! -f public/index.php ] && mkdir -p public && cp -r vendor/processwire/processwire/* public/ || echo 'ProcessWire already exists'",
-      "[ ! -d public/site ] && cp -r public/site-blank public/site && rm -rf public/site-blank || echo 'Site folder exists'",
+      "[ ! -d public/site ] && cp -r public/site-blank public/site && rm -rf public/site-blank || echo 'Site folder already exists'",
       "echo 'ProcessWire setup complete'"
     ],
     "setup-rockmigrations": [
@@ -31,24 +31,30 @@
       "[ ! -d RockShell ] && git clone -b dev https://github.com/lemachinarbo/RockShell.git RockShell || echo 'RockShell already exists'"
     ],
     "post-setup": [
-      "echo 'Running RockShell setup...'",
+      "echo '\\n==== Running RockShell setup ===='",
       "[ -f RockShell/rock ] && php RockShell/rock pw:installer --lazy || echo 'RockShell command not available'",
-      "echo 'Installing RockMigrations...'",
+      "echo '\\n==== Installing RockMigrations ===='",
       "[ -f RockShell/rock ] && php RockShell/rock module:install -m RockMigrations  || echo 'RockShell command not available'",
-      "echo 'Refreshing modules...'",
+      "echo '\\n==== Refreshing modules ===='",
       "[ -f RockShell/rock ] && php RockShell/rock pw:refresh || echo 'RockShell command not available'",
-      "echo 'Cleaning up ProcessWire files...'",
+      "echo '\\n==== Creating config-local.php file ===='",
+      "[ ! -f public/site/config-local.php ] && echo '<?php\\n// Add your environment-specific config here\\n' > public/site/config-local.php || echo 'config-local.php already exists'",
+      "[ -f public/site/config.php ] && grep -q 'require __DIR__ . \"/config-local.php\";' public/site/config.php || echo '// Split Config Pattern' >> public/site/config.php && echo 'require __DIR__ . \"/config-local.php\";' >> public/site/config.php",
+      "echo 'Config split complete.'",
+      "echo '\\n==== Dumping database ===='",
+      "[ -f RockShell/rock ] && php RockShell/rock db:dump || echo 'RockShell command not available'",
+      "echo 'Database dump complete.'",
+      "echo 'Config-local.php setup complete.'",
+      "echo '\\n==== Cleaning up ProcessWire files ===='",
       "@cleanup-processwire",
-      "echo 'Setup complete!'"
+      "echo '\\nSetup complete!\\n'"
     ],
     "cleanup-processwire": [
       "[ -f public/README.md ] && rm public/README.md || echo 'README.md not found'",
       "[ -f public/CONTRIBUTING.md ] && rm public/CONTRIBUTING.md || echo 'CONTRIBUTING.md not found'",
       "[ -f public/LICENSE.TXT ] && rm public/LICENSE.TXT || echo 'LICENSE.TXT not found'",
       "[ -f public/composer.json ] && rm public/composer.json || echo 'ProcessWire composer.json not found'",
-      "[ -f public/.gitattributes ] && rm public/.gitattributes || echo 'ProcessWire .gitattributes not found'",
-      "[ -f public/htaccess.txt ] && rm public/htaccess.txt || echo 'ProcessWire htaccess.txt not found'",
-      "echo 'ProcessWire cleanup complete'"
+      "echo 'ProcessWire cleanup complete.'"
     ]
   }
 }
