@@ -18,7 +18,7 @@ Based on [processwire.dev](https://github.com/MoritzLost/ProcessWireDev/blob/mas
 ## Install
 
 ```bash
-curl -O https://raw.githubusercontent.com/lemachinarbo/comPWser/main/composer.json
+wget https://raw.githubusercontent.com/lemachinarbo/comPWser/main/composer.json
 composer install
 ```
 
