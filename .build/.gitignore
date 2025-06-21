@@ -1,0 +1,9 @@
+# ignore vscode snippets
+.vscode
+
+# ignore vendors
+vendor/
+node_modules/
+
+# ignore environment files 
+.env
