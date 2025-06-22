@@ -1,5 +1,5 @@
 {
-  "name": "lemachinarbo/project",
+  "name": "your/project",
   "type": "project",
   "require": {
     "php": ">=8.0",

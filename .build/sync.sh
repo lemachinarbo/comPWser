@@ -1,48 +1,65 @@
 #!/bin/bash
 
 # Load configuration from .env file
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+CHECK="${GREEN}✓${NC}"
+CROSS="${RED}✗${NC}"
+WARN="${YELLOW}⚠${NC}"
+
 ENV_FILE="$(dirname "$0")/../.env"
 if [ -f "$ENV_FILE" ]; then
-    echo "Loading config from $ENV_FILE"
+    echo -e "${YELLOW}Loading config from $ENV_FILE${NC}"
     source "$ENV_FILE"
 else
-    echo "Warning: .env file not found at $ENV_FILE"
+    echo -e "${WARN}  Warning: .env file not found at $ENV_FILE"
 fi
 
+echo
 # Set defaults if not configured
-REMOTE_USER=${REMOTE_USER:-"user@server"}
-REMOTE_PATH=${REMOTE_PATH:-"/path/to/deployment"}
-SSH_KEY=${SSH_KEY:-"~/.ssh/id_rsa"}
+SSH_KEY_PATH="$HOME/.ssh/${SSH_KEY:-id_rsa}"
+REMOTE_USER=${SSH_USER:-"user@server"}
+REMOTE_HOST=${SSH_HOST:-"server"}
+REMOTE_PATH=${DEPLOY_PATH:-"/path/to/deployment"}
+REMOTE_USER_HOST="$REMOTE_USER@$REMOTE_HOST"
 
-echo "🚀 Deploying to production server..."
-echo "Using SSH key: $SSH_KEY"
-echo "Deploying to: $REMOTE_USER:$REMOTE_PATH"
+echo -e "${YELLOW}🚀 Deploying to production server...${NC}"
+echo -e "Using SSH key: $SSH_KEY_PATH"
+echo -e "Deploying to: $REMOTE_USER_HOST:$REMOTE_PATH"
 
+echo
 # Comment out problematic .htaccess line before deployment
 if [ -f ".htaccess" ]; then
     # Only comment out if it's not already commented
     if grep -q "^Options +FollowSymLinks" .htaccess; then
-        echo "📝 Commenting out 'Options +FollowSymLinks' in .htaccess..."
+        echo -e "${YELLOW}📝 Commenting out 'Options +FollowSymLinks' in .htaccess...${NC}"
         sed -i 's/^Options +FollowSymLinks/# Options +FollowSymLinks/' .htaccess
     fi
     
     # Only uncomment if it's currently commented
     if grep -q "^# Options +SymLinksIfOwnerMatch" .htaccess; then
-        echo "📝 Uncommenting 'Options +SymLinksIfOwnerMatch' in .htaccess..."
+        echo -e "${YELLOW}📝 Uncommenting 'Options +SymLinksIfOwnerMatch' in .htaccess...${NC}"
         sed -i 's/^# Options +SymLinksIfOwnerMatch/Options +SymLinksIfOwnerMatch/' .htaccess
     fi
 fi
 
-rsync -avz -e "ssh -i $SSH_KEY" \
+echo
+# Change to project root so rsync can find public and RockShell
+cd "$(dirname "$0")/.."
+
+rsync -avz -e "ssh -i $SSH_KEY_PATH" \
   --exclude='.git' \
   --exclude='.env' \
   --chmod=D775,F664 \
-  ./ "$REMOTE_USER:$REMOTE_PATH"
+  "$PW_ROOT"/ RockShell "$REMOTE_USER_HOST:$REMOTE_PATH"
 
 # Check if rsync succeeded
+echo
 if [ $? -eq 0 ]; then
-    echo "✅ Deployment complete!"
+    echo -e "${CHECK} Deployment complete!"
 else
-    echo "❌ Deployment failed!"
+    echo -e "${CROSS} Deployment failed!"
     exit 1
 fi

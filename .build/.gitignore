@@ -1,9 +1,17 @@
-# ignore vscode snippets
+# snippets
 .vscode
+
+# setup
+.build/
 
 # ignore vendors
 vendor/
 node_modules/
 
-# ignore environment files 
+# sensible files 
 .env
+public/site/config-local.php
+
+# assets
+public/site/assets
+public/site/assets/*
