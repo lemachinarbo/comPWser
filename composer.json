@@ -39,6 +39,8 @@
       "@post-setup"
     ],
     "post-update-cmd": [
+      "@clone-setup",
+      "@move-setup-files",
       "@setup-processwire", 
       "@setup-rockmigrations",
       "@setup-rockshell",
