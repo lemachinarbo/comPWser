@@ -25,41 +25,46 @@ REMOTE_HOST=${SSH_HOST:-"server"}
 REMOTE_PATH=${DEPLOY_PATH:-"/path/to/deployment"}
 REMOTE_USER_HOST="$REMOTE_USER@$REMOTE_HOST"
 
-echo -e "${YELLOW}🚀 Deploying to production server...${NC}"
+echo -e "${YELLOW} Deploying to production server...${NC}"
 echo -e "Using SSH key: $SSH_KEY_PATH"
 echo -e "Deploying to: $REMOTE_USER_HOST:$REMOTE_PATH"
-
-echo
-# Comment out problematic .htaccess line before deployment
-if [ -f ".htaccess" ]; then
-    # Only comment out if it's not already commented
-    if grep -q "^Options +FollowSymLinks" .htaccess; then
-        echo -e "${YELLOW}📝 Commenting out 'Options +FollowSymLinks' in .htaccess...${NC}"
-        sed -i 's/^Options +FollowSymLinks/# Options +FollowSymLinks/' .htaccess
-    fi
-    
-    # Only uncomment if it's currently commented
-    if grep -q "^# Options +SymLinksIfOwnerMatch" .htaccess; then
-        echo -e "${YELLOW}📝 Uncommenting 'Options +SymLinksIfOwnerMatch' in .htaccess...${NC}"
-        sed -i 's/^# Options +SymLinksIfOwnerMatch/Options +SymLinksIfOwnerMatch/' .htaccess
-    fi
-fi
 
 echo
 # Change to project root so rsync can find public and RockShell
 cd "$(dirname "$0")/.."
 
-rsync -avz -e "ssh -i $SSH_KEY_PATH" \
+echo
+# Comment out both options by default, then enable the one specified by HTACCESS_OPTION if set
+HTACCESS_FILE="$PW_ROOT/.htaccess"
+if [ -f "$HTACCESS_FILE" ]; then
+    echo -e "${YELLOW}Ensuring correct .htaccess Options settings in $HTACCESS_FILE...${NC}"
+    # Comment out all Options +FollowSymLinks (case-insensitive, robust whitespace)
+    sed -i -E 's/^[[:space:]]*[#]*[[:space:]]*Options[[:space:]]+\+FollowSymLinks/# Options +FollowSymLinks/I' "$HTACCESS_FILE"
+    # Comment out all Options +SymLinksifOwnerMatch or Options +SymLinksIfOwnerMatch (case-insensitive, robust whitespace)
+    sed -i -E 's/^[[:space:]]*[#]*[[:space:]]*Options[[:space:]]+\+SymLinks[Ii]fOwnerMatch/# Options +SymLinksIfOwnerMatch/I' "$HTACCESS_FILE"
+    # Uncomment the one specified by HTACCESS_OPTION (case-insensitive, always use correct casing)
+    if [[ "${HTACCESS_OPTION,,}" == "followsymlinks" ]]; then
+        sed -i -E 's/^# Options[[:space:]]+\+FollowSymLinks/Options +FollowSymLinks/I' "$HTACCESS_FILE"
+    elif [[ "${HTACCESS_OPTION,,}" == "symlinksifownermatch" ]]; then
+        sed -i -E 's/^# Options[[:space:]]+\+SymLinks[Ii]fOwnerMatch.*/Options +SymLinksIfOwnerMatch/' "$HTACCESS_FILE"
+    fi
+fi
+
+RSYNC_ERRORS=0
+
+# Run rsync and capture stderr to a log file for troubleshooting
+rsync -avz --omit-dir-times -e "ssh -i $SSH_KEY_PATH" \
   --exclude='.git' \
   --exclude='.env' \
   --chmod=D775,F664 \
-  "$PW_ROOT"/ RockShell "$REMOTE_USER_HOST:$REMOTE_PATH"
-
-# Check if rsync succeeded
+  "$PW_ROOT/" RockShell "$REMOTE_USER_HOST:$REMOTE_PATH" 2>rsync_errors.log
+RSYNC_EXIT_CODE=$?
 echo
-if [ $? -eq 0 ]; then
+if [ $RSYNC_EXIT_CODE -eq 0 ]; then
     echo -e "${CHECK} Deployment complete!"
 else
-    echo -e "${CROSS} Deployment failed!"
+    echo -e "${CROSS} Deployment failed! Rsync exited with code $RSYNC_EXIT_CODE."
+    echo -e "${RED}Please check your SSH credentials, permissions, and server status, then fix any issues and run the script again.${NC}"
+    echo -e "${RED}See rsync_errors.log for details on what went wrong.${NC}"
     exit 1
 fi
