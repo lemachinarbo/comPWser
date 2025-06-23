@@ -29,7 +29,7 @@ fi
 
 echo
 # Step 1: GitHub Actions Setup
-echo -ne "${GREEN}Step 1:${NC} Run GitHub Actions setup? (y/n) [${YELLOW}y${NC}]: "
+echo -ne "${GREEN}Step 1/5:${NC} Run GitHub Actions setup? (y/n) [${YELLOW}y${NC}]: "
 read yn1
 yn1=${yn1:-y}
 if [[ $yn1 =~ ^[Yy]$ ]]; then
@@ -40,7 +40,7 @@ fi
 
 echo
 # Step 2: Create/update config-local.php from .env
-echo -ne "${GREEN}Step 2:${NC} Create/update config-local.php from .env? (y/n) [${YELLOW}y${NC}]: "
+echo -ne "${GREEN}Step 2/5:${NC} Create/update config-local.php from .env? (y/n) [${YELLOW}y${NC}]: "
 read yn2
 yn2=${yn2:-y}
 if [[ $yn2 =~ ^[Yy]$ ]]; then
@@ -51,7 +51,7 @@ fi
 
 echo
 # Step 3: Sync files (deploy)
-echo -ne "${GREEN}Step 3:${NC} Sync files and deploy? (y/n) [${YELLOW}y${NC}]: "
+echo -ne "${GREEN}Step 3/5:${NC} Sync files and deploy to server? (y/n) [${YELLOW}y${NC}]: "
 read yn3
 yn3=${yn3:-y}
 if [[ $yn3 =~ ^[Yy]$ ]]; then
@@ -61,25 +61,26 @@ else
 fi
 
 echo
-# Step 4: Database import
-echo -ne "${GREEN}Step 4:${NC} Import database using RockShell db:restore? (y/n) [${YELLOW}n${NC}]: "
+# Step 4: Update server file structure for automated deployments and fix permissions
+echo -ne "${GREEN}Step 4/5:${NC} Update server file structure for automated deployments? (y/n) [${YELLOW}y${NC}]: "
 read yn4
-yn4=${yn4:-n}
+yn4=${yn4:-y}
 if [[ $yn4 =~ ^[Yy]$ ]]; then
+    ssh -i "$HOME/.ssh/${SSH_KEY:-id_rsa}" "$SSH_USER@$SSH_HOST" "cd $DEPLOY_PATH && php RockShell/rock rm:transform && find . -type d -exec chmod 755 {} \; && find . -type f -exec chmod 664 {} \;"
+    echo -e "${CHECK} Server file structure updated and permissions set: directories=755, files=664."
+else
+    echo -e "${WARN}  Skipping server file structure update and permissions fix."
+fi
+
+echo
+# Step 5: Database import
+echo -ne "${GREEN}Step 5/5:${NC} Import ProcessWire database to the server? (y/n) [${YELLOW}y${NC}]: "
+read yn5
+yn5=${yn5:-y}
+if [[ $yn5 =~ ^[Yy]$ ]]; then
     ssh -i "$HOME/.ssh/${SSH_KEY:-id_rsa}" "$SSH_USER@$SSH_HOST" "cd $DEPLOY_PATH && php RockShell/rock db:restore" && echo -e "${CHECK} Database import complete." || echo -e "${CROSS} Database import failed!"
 else
     echo -e "${WARN}  Skipping database import."
 fi
 
-echo
-# Step 5: RockShell transform
-echo -ne "${GREEN}Step 5:${NC} Apply RockShell transform (php RockShell/rock rm:transform)? (y/n) [${YELLOW}y${NC}]: "
-read yn5
-yn5=${yn5:-y}
-if [[ $yn5 =~ ^[Yy]$ ]]; then
-    ssh -i "$HOME/.ssh/${SSH_KEY:-id_rsa}" "$SSH_USER@$SSH_HOST" "cd $DEPLOY_PATH && php RockShell/rock rm:transform" && echo -e "${CHECK} RockShell transformation complete." || echo -e "${CROSS} RockShell transformation failed!"
-else
-    echo -e "${WARN}  Skipping RockShell transformation."
-fi
-
-echo -e "\n${GREEN}🎉 All selected steps completed!${NC}\n"
+echo -e "\n${CHECK} All selected steps completed!${NC}\n"
