@@ -24,26 +24,24 @@
       "[ ! -d public/site ] && cp -r public/site-blank public/site && rm -rf public/site-blank || echo 'Site folder already exists'",
       "echo 'ProcessWire setup complete'"
     ],
-    "setup-rockmigrations": [
-      "[ ! -d public/site/modules/RockMigrations ] && git clone https://github.com/baumrock/RockMigrations.git public/site/modules/RockMigrations || echo 'RockMigrations already exists'"
-    ],
-    "setup-rockshell": [
-      "[ ! -d RockShell ] && git clone -b dev https://github.com/lemachinarbo/RockShell.git RockShell || echo 'RockShell already exists'"
+    "setup-submodules": [
+      "[ -d .git ] || git init",
+      "[ -d RockShell/.git ] || git submodule add -b dev https://github.com/lemachinarbo/RockShell.git RockShell || echo 'RockShell submodule already exists'",
+      "[ -d public/site/modules/RockMigrations/.git ] || git submodule add https://github.com/baumrock/RockMigrations.git public/site/modules/RockMigrations || echo 'RockMigrations submodule already exists'",
+      "git submodule update --init --recursive"
     ],
     "post-install-cmd": [
       "@clone-setup",
       "@move-setup-files",
       "@setup-processwire",
-      "@setup-rockmigrations",
-      "@setup-rockshell",
+      "@setup-submodules",
       "@post-setup"
     ],
     "post-update-cmd": [
       "@clone-setup",
       "@move-setup-files",
-      "@setup-processwire", 
-      "@setup-rockmigrations",
-      "@setup-rockshell",
+      "@setup-processwire",
+      "@setup-submodules",
       "@post-setup"
     ],
     "post-setup": [
@@ -65,6 +63,7 @@
       "echo '\\nSetup complete!\\n'"
     ],
     "cleanup-processwire": [
+      "[ -d ./public/site/modules/RockMigrations ] && cd ./public/site/modules/RockMigrations && git reset --hard && git clean -fdx && cd - || echo 'RockMigrations submodule not present, skipping clean/reset'",
       "[ -f public/README.md ] && rm public/README.md || echo 'README.md not found'",
       "[ -f public/CONTRIBUTING.md ] && rm public/CONTRIBUTING.md || echo 'CONTRIBUTING.md not found'",
       "[ -f public/LICENSE.TXT ] && rm public/LICENSE.TXT || echo 'LICENSE.TXT not found'",

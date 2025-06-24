@@ -56,7 +56,7 @@ RSYNC_ERRORS=0
 rsync -avz --omit-dir-times -e "ssh -i $SSH_KEY_PATH" \
   --exclude='.git' \
   --exclude='.env' \
-  --chmod=D775,F664 \
+  --chmod=D775,F644 \
   "$PW_ROOT/" RockShell "$REMOTE_USER_HOST:$REMOTE_PATH" 2>rsync_errors.log
 RSYNC_EXIT_CODE=$?
 echo

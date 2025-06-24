@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    uses: baumrock/RockMigrations/.github/workflows/deploy.yaml@main
+    uses: lemachinarbo/RockMigrations/.github/workflows/deploy.yaml@dev
     with:
       PATH: ${{ vars.DEPLOY_PATH }}
       SSH_HOST: ${{ vars.SSH_HOST }}

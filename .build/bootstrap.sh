@@ -66,8 +66,8 @@ echo -ne "${GREEN}Step 4/5:${NC} Update server file structure for automated depl
 read yn4
 yn4=${yn4:-y}
 if [[ $yn4 =~ ^[Yy]$ ]]; then
-    ssh -i "$HOME/.ssh/${SSH_KEY:-id_rsa}" "$SSH_USER@$SSH_HOST" "cd $DEPLOY_PATH && php RockShell/rock rm:transform && find . -type d -exec chmod 755 {} \; && find . -type f -exec chmod 664 {} \;"
-    echo -e "${CHECK} Server file structure updated and permissions set: directories=755, files=664."
+    ssh -i "$HOME/.ssh/${SSH_KEY:-id_rsa}" "$SSH_USER@$SSH_HOST" "cd $DEPLOY_PATH && php RockShell/rock rm:transform && find . -type d -exec chmod 755 {} \; && find . -type f -exec chmod 644 {} \;"
+    echo -e "${CHECK} Server file structure updated and permissions set: directories=755, files=644."
 else
     echo -e "${WARN}  Skipping server file structure update and permissions fix."
 fi
