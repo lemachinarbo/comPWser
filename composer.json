@@ -8,7 +8,7 @@
   "scripts": {
     "clone-setup": [
       "echo 'Cloning setup repository...'",
-      "git clone --branch dev https://github.com/lemachinarbo/comPWser.git comPWser || { echo 'git clone failed, aborting.'; exit 1; }"
+      "git clone --branch https://github.com/lemachinarbo/comPWser.git comPWser || { echo 'git clone failed, aborting.'; exit 1; }"
     ],
     "move-setup-files": [
       "echo 'Moving setup files from comPWser to project root...'",
