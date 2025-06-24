@@ -48,12 +48,12 @@ That said, you don’t need DDEV to follow along — just adapt any DDEV-specifi
 
 ### Project structure
 
-When installing ProcessWire, I like to follow the structure from (MoritzLost's Composer Integration guide)[https://processwire.dev/integrate-composer-with-processwire/#recommended-directory-structure-for-processwire-projects-with-composer]. Why? because it keeps all ProcessWire files in one folder and leaves everything else—packages, build tools, vendor, node stuff—outside. So, this is the setup we'll be going with:
+When installing ProcessWire, I like to follow the structure from (MoritzLost's Composer Integration guide)[https://processwire.dev/integrate-composer-with-processwire/#recommended-directory-structure-for-processwire-projects-with-composer]. Why? because it keeps all ProcessWire files in one folder and leaves everything else—packages, build tools, vendor, node stuff—outside: 
 
 ```
 /                  # root
 ├── composer.json  # Composer config
-├── public         # webroot (contains ProcessWire)
+├── public         # docroot (contains ProcessWire)
 │   ├── index.php
 │   ├── site       
 │   ├── wire       
@@ -62,14 +62,15 @@ When installing ProcessWire, I like to follow the structure from (MoritzLost's C
 └── node_modules   # Other dependencies...
 ```
 
-This means we have to define the `public` folder as our `webroot` in our local environment. 
-In DDEV we can do this at the start of the project by running `ddev config` 
+To follow this structure we must define `public` as our `docroot` in our local environment. 
+
+With DDEV, we can set this up right from the start when creating our project. Simply run `ddev config` and enter `public` as the `docroot` when prompted:
 
 ```sh
 Docroot Location (project root): public
 ```
 
-Or, if we already have a project, by editing the `docroot` line in the `.ddev/config.yaml` file:
+Or, if we already have a project, we can update the `docroot` by editing the `docroot` line in `.ddev/config.yaml` file:
 
 ```yaml
 name: oz
@@ -106,14 +107,14 @@ And that's it! You can test your Processwire installation: https://yourwebsite.d
 
 comPWser is essentially a collection of scripts to automate the setup of a ProcessWire project, following the (Deployments guide)[https://www.baumrock.com/en/processwire/modules/rockmigrations/docs/deploy/#update-config.php] from @baumrock.
 
-If you have never heard of or used Deployments before, please start by reading his guide ((a step by step video)[https://www.youtube.com/watch?v=4wS7xWUtFes] is included!). 
+If you have never heard of or used Deployments before, please start by reading Bernhard's guide ((a step by step video)[https://www.youtube.com/watch?v=4wS7xWUtFes] is included!). 
 
 > **Note:** A GitHub repository for the project is required, [create one](https://github.com/new) if you haven't already.
 
 
 ### 1. Creating a .env environment file
 
-Inside the `.build` folder you will find a `.env.example` template. Please copy to your root and rename to `.env`:
+Inside the `.build` folder, you will find a `.env.example` template. Copy it to your project root and rename it to `.env`:
 
 ```sh
 mv ./.build/.env.example ./.env
@@ -134,7 +135,7 @@ SSH_KEY=id_github # We will be creating this key later
 
 # Deployment details
 
-# Path to your "webroot", the website's public directory on the server 
+# Path to your "docroot", the website's public directory on the server 
 DEPLOY_PATH=/var/www/html
 
 # If ProcessWire is installed in the public folder: PW_ROOT=public
@@ -147,6 +148,8 @@ SERVER_DB_HOST=localhost
 SERVER_DB_USER=example_user
 SERVER_DB_NAME=example_db
 SERVER_DB_PASS=password1234
+
+HTACCESS_OPTION=SymLinksifOwnerMatch
 ```
 
 #### Creating a Github Personal Access Token
@@ -206,20 +209,20 @@ No more setup is needed. Run the bootsrap script and follow the prompts:
 chmod +x ./.build/bootstrap.sh && ./.build/bootstrap.sh
 ```
 
-And we are done! Check your server webroot folder and you will have something like this:
+And we are done! Check your server docroot folder and you will have something like this:
 
 ```
-/path/to/your/webroot/
+/path/to/your/docroot/
 ├── current     # Symlink to the current release (e.g. release-1)
 ├── release-1   # Current release directory
 ├── shared/     # Shared files (e.g. user uploads, logs, cache)
 ```
 
-Update your web server configuration (e.g., Apache, Nginx, or your hosting control panel) to point the document root to the current symlink instead of the base webroot directory. This way, your website will always serve the latest deployed release.
-
-Update your server setting to define current as your new webroot and your website will be visible!
+Update your web server configuration (e.g., Apache, Nginx, or your hosting control panel) to point the `docroot` to `current` instead of the base docroot directory. This way, your website will always serve the latest deployed release. 
 
 ```
-OLD: /path/to/your/webroot
-NEW: /path/to/your/webroot/current
+OLD: /path/to/your/docroot
+NEW: /path/to/your/docroot/current
 ```
+
+Now go to yourdomain.com  and test your website!
