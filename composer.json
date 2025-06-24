@@ -1,58 +1,73 @@
 {
-  "name": "lemachinarbo/project",
+  "name": "lemachinarbo/compwser",
   "type": "project",
   "require": {
     "php": ">=8.0",
     "processwire/processwire": "^3.0"
   },
   "scripts": {
-    "post-install-cmd": [
-      "@setup-processwire",
-      "@setup-rockmigrations",
-      "@setup-rockshell",
-      "@post-setup"
+    "clone-setup": [
+      "echo 'Cloning setup repository...'",
+      "git clone --branch dev https://github.com/lemachinarbo/comPWser.git comPWser || { echo 'git clone failed, aborting.'; exit 1; }"
     ],
-    "post-update-cmd": [
-      "@setup-processwire", 
-      "@setup-rockmigrations",
-      "@setup-rockshell",
-      "@post-setup"
+    "move-setup-files": [
+      "echo 'Moving setup files from comPWser to project root...'",
+      "rm -rf .build",
+      "find comPWser -mindepth 1 -maxdepth 1 ! -name composer.json ! -name README.md -exec bash -c 'if [ ! -e \"./$(basename {})\" ]; then mv \"{}\" ./; else echo \"Skipping $(basename {}) (already exists)\"; fi' \\;",
+      "mv comPWser/.* . 2>/dev/null || true",
+      "echo 'Cleaning up comPWser folder...'",
+      "rm -rf comPWser"
     ],
     "setup-processwire": [
-      "echo '\\n==== Setting up ProcessWire ===='",
+      "echo '\\n==== Setting up ProcessWire ====\\n'",
       "[ ! -f public/index.php ] && mkdir -p public && cp -r vendor/processwire/processwire/* public/ || echo 'ProcessWire already exists'",
       "[ ! -d public/site ] && cp -r public/site-blank public/site && rm -rf public/site-blank || echo 'Site folder already exists'",
       "echo 'ProcessWire setup complete'"
     ],
-    "setup-rockmigrations": [
-      "[ ! -d public/site/modules/RockMigrations ] && git clone https://github.com/baumrock/RockMigrations.git public/site/modules/RockMigrations || echo 'RockMigrations already exists'"
+    "setup-submodules": [
+      "[ -d .git ] || git init",
+      "[ -d RockShell/.git ] || git submodule add -b dev https://github.com/lemachinarbo/RockShell.git RockShell || echo 'RockShell submodule already exists'",
+      "[ -d public/site/modules/RockMigrations/.git ] || git submodule add https://github.com/baumrock/RockMigrations.git public/site/modules/RockMigrations || echo 'RockMigrations submodule already exists'",
+      "git submodule update --init --recursive"
     ],
-    "setup-rockshell": [
-      "[ ! -d RockShell ] && git clone -b dev https://github.com/lemachinarbo/RockShell.git RockShell || echo 'RockShell already exists'"
+    "post-install-cmd": [
+      "@clone-setup",
+      "@move-setup-files",
+      "@setup-processwire",
+      "@setup-submodules",
+      "@post-setup"
+    ],
+    "post-update-cmd": [
+      "@clone-setup",
+      "@move-setup-files",
+      "@setup-processwire",
+      "@setup-submodules",
+      "@post-setup"
     ],
     "post-setup": [
-      "echo '\\n==== Running RockShell setup ===='",
+      "echo '\\n==== Running RockShell setup ====\\n'",
       "[ -f RockShell/rock ] && php RockShell/rock pw:installer --lazy || echo 'RockShell command not available'",
-      "echo '\\n==== Installing RockMigrations ===='",
+      "echo '\\n==== Installing RockMigrations ====\\n'",
       "[ -f RockShell/rock ] && php RockShell/rock module:install -m RockMigrations  || echo 'RockShell command not available'",
-      "echo '\\n==== Refreshing modules ===='",
+      "echo '\\n==== Refreshing modules ====\\n'",
       "[ -f RockShell/rock ] && php RockShell/rock pw:refresh || echo 'RockShell command not available'",
-      "echo '\\n==== Creating config-local.php file ===='",
-      "[ ! -f public/site/config-local.php ] && echo '<?php\\n// Add your environment-specific config here\\n' > public/site/config-local.php || echo 'config-local.php already exists'",
-      "[ -f public/site/config.php ] && grep -q 'require __DIR__ . \"/config-local.php\";' public/site/config.php || echo '// Split Config Pattern' >> public/site/config.php && echo 'require __DIR__ . \"/config-local.php\";' >> public/site/config.php",
-      "echo 'Config split complete.'",
-      "echo '\\n==== Dumping database ===='",
+      "echo '\\n==== Dumping database ====\\n'",
       "[ -f RockShell/rock ] && php RockShell/rock db:dump || echo 'RockShell command not available'",
       "echo 'Database dump complete.'",
-      "echo 'Config-local.php setup complete.'",
-      "echo '\\n==== Cleaning up ProcessWire files ===='",
+      "echo '\\n==== Cleaning up ProcessWire files ====\\n'",
       "@cleanup-processwire",
+      "echo 'Replacing bootstrap composer.json with clean template...'",
+      "mv -f .build/composer.template.json ./composer.json",
+      "echo 'Removing bootstrap composer.lock file...'",
+      "rm -f composer.lock",
       "echo '\\nSetup complete!\\n'"
     ],
     "cleanup-processwire": [
+      "[ -d ./public/site/modules/RockMigrations ] && cd ./public/site/modules/RockMigrations && git reset --hard && git clean -fdx && cd - || echo 'RockMigrations submodule not present, skipping clean/reset'",
       "[ -f public/README.md ] && rm public/README.md || echo 'README.md not found'",
       "[ -f public/CONTRIBUTING.md ] && rm public/CONTRIBUTING.md || echo 'CONTRIBUTING.md not found'",
       "[ -f public/LICENSE.TXT ] && rm public/LICENSE.TXT || echo 'LICENSE.TXT not found'",
+      "[ -f .build/.gitignore ] && mv -f .build/.gitignore ./.gitignore || echo '.gitignore not found'",
       "[ -f public/composer.json ] && rm public/composer.json || echo 'ProcessWire composer.json not found'",
       "echo 'ProcessWire cleanup complete.'"
     ]
