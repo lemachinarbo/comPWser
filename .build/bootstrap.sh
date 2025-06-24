@@ -61,26 +61,26 @@ else
 fi
 
 echo
-# Step 4: Update server file structure for automated deployments and fix permissions
-echo -ne "${GREEN}Step 4/5:${NC} Update server file structure for automated deployments? (y/n) [${YELLOW}y${NC}]: "
+# Step 4: Database import
+echo -ne "${GREEN}Step 4/5:${NC} Import ProcessWire database to the server? (y/n) [${YELLOW}y${NC}]: "
 read yn4
 yn4=${yn4:-y}
 if [[ $yn4 =~ ^[Yy]$ ]]; then
+    ssh -i "$HOME/.ssh/${SSH_KEY:-id_rsa}" "$SSH_USER@$SSH_HOST" "cd $DEPLOY_PATH && php RockShell/rock db:restore" && echo -e "${CHECK} Database import complete." || echo -e "${CROSS} Database import failed!"
+else
+    echo -e "${WARN}  Skipping database import."
+fi
+
+echo
+# Step 5: Update server file structure for automated deployments and fix permissions
+echo -ne "${GREEN}Step 5/5:${NC} Update server file structure for automated deployments? (y/n) [${YELLOW}y${NC}]: "
+read yn5
+yn5=${yn5:-y}
+if [[ $yn5 =~ ^[Yy]$ ]]; then
     ssh -i "$HOME/.ssh/${SSH_KEY:-id_rsa}" "$SSH_USER@$SSH_HOST" "cd $DEPLOY_PATH && php RockShell/rock rm:transform && find . -type d -exec chmod 755 {} \; && find . -type f -exec chmod 644 {} \;"
     echo -e "${CHECK} Server file structure updated and permissions set: directories=755, files=644."
 else
     echo -e "${WARN}  Skipping server file structure update and permissions fix."
-fi
-
-echo
-# Step 5: Database import
-echo -ne "${GREEN}Step 5/5:${NC} Import ProcessWire database to the server? (y/n) [${YELLOW}y${NC}]: "
-read yn5
-yn5=${yn5:-y}
-if [[ $yn5 =~ ^[Yy]$ ]]; then
-    ssh -i "$HOME/.ssh/${SSH_KEY:-id_rsa}" "$SSH_USER@$SSH_HOST" "cd $DEPLOY_PATH && php RockShell/rock db:restore" && echo -e "${CHECK} Database import complete." || echo -e "${CROSS} Database import failed!"
-else
-    echo -e "${WARN}  Skipping database import."
 fi
 
 echo -e "\n${CHECK} All selected steps completed!${NC}\n"
