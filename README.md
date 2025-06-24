@@ -40,7 +40,7 @@ like this:
 
 ## Step by step guide
 
-This guide assumes you're using DDEV for local development. Aren’t you? If not, it's time to (convert)[https://ddev.com/get-started/].
+This guide assumes you're using DDEV for local development. Aren’t you? If not, it's time to [convert](https://ddev.com/get-started/).
 
 That said, you don’t need DDEV to follow along — just adapt any DDEV-specific references as needed.
 
