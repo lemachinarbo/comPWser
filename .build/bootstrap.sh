@@ -16,9 +16,6 @@ WARN="${YELLOW}⚠${NC}"
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-# Ensure all step scripts are executable
-chmod +x "$SCRIPT_DIR/github_setup.sh" "$SCRIPT_DIR/sync.sh" "$SCRIPT_DIR/setup-config.sh"
-
 # Load .env
 ENV_FILE="$SCRIPT_DIR/../.env"
 if [ -f "$ENV_FILE" ]; then
@@ -27,13 +24,16 @@ else
     echo -e "${WARN}  Warning: .env file not found at $ENV_FILE"
 fi
 
+# Ensure all step scripts are executable
+chmod +x "$SCRIPT_DIR/deploy.sh" "$SCRIPT_DIR/config-local.sh" "$SCRIPT_DIR/sync.sh" "$SCRIPT_DIR/sshkeys.sh"
+
 echo
 # Step 1: GitHub Actions Setup
 echo -ne "${GREEN}Step 1/5:${NC} Run GitHub Actions setup? (y/n) [${YELLOW}y${NC}]: "
 read yn1
 yn1=${yn1:-y}
 if [[ $yn1 =~ ^[Yy]$ ]]; then
-    "$SCRIPT_DIR/github_setup.sh" && echo -e "${CHECK} GitHub Actions setup complete." || { echo -e "${CROSS} GitHub setup failed!"; exit 1; }
+    "$SCRIPT_DIR/deploy.sh" && echo -e "${CHECK} GitHub Actions setup complete." || { echo -e "${CROSS} GitHub setup failed!"; exit 1; }
 else
     echo -e "${WARN}  Skipping GitHub Actions setup."
 fi
@@ -44,7 +44,7 @@ echo -ne "${GREEN}Step 2/5:${NC} Create/update config-local.php from .env? (y/n)
 read yn2
 yn2=${yn2:-y}
 if [[ $yn2 =~ ^[Yy]$ ]]; then
-    "$SCRIPT_DIR/setup-config.sh"
+    "$SCRIPT_DIR/config-local.sh" && echo -e "${CHECK} config-local.php setup complete." || { echo -e "${CROSS} config-local.php setup failed!"; exit 1; }
 else
     echo -e "${WARN}  Skipping config-local.php setup."
 fi
@@ -83,4 +83,5 @@ else
     echo -e "${WARN}  Skipping server file structure update and permissions fix."
 fi
 
-echo -e "\n${CHECK} All selected steps completed!${NC}\n"
+echo -e "\n${CHECK} All selected steps completed!"
+echo -e "\n${YELLOW}Reminder:${NC} Please commit and push your changes to the repository to activate the deployment workflows.\n"

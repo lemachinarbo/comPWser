@@ -25,7 +25,7 @@ REMOTE_HOST=${SSH_HOST:-"server"}
 REMOTE_PATH=${DEPLOY_PATH:-"/path/to/deployment"}
 REMOTE_USER_HOST="$REMOTE_USER@$REMOTE_HOST"
 
-echo -e "${YELLOW} Deploying to production server...${NC}"
+echo -e "${YELLOW}Deploying to remote server...${NC}"
 echo -e "Using SSH key: $SSH_KEY_PATH"
 echo -e "Deploying to: $REMOTE_USER_HOST:$REMOTE_PATH"
 
@@ -50,21 +50,38 @@ if [ -f "$HTACCESS_FILE" ]; then
     fi
 fi
 
+# Check if source folders exist before running rsync
+if [ ! -d "$PW_ROOT" ]; then
+    echo -e "${CROSS} Source directory PW_ROOT ('$PW_ROOT') does not exist. Aborting deployment."
+    exit 1
+fi
+if [ ! -d "$ROCKSHELL_PATH" ]; then
+    echo -e "${CROSS} Source directory '$ROCKSHELL_PATH' does not exist. Aborting deployment."
+    exit 1
+fi
+
 RSYNC_ERRORS=0
 
 # Run rsync and capture stderr to a log file for troubleshooting
+RSYNC_LOG="$SCRIPT_DIR/rsync_errors.log"
 rsync -avz --omit-dir-times -e "ssh -i $SSH_KEY_PATH" \
   --exclude='.git' \
   --exclude='.env' \
   --chmod=D775,F644 \
-  "$PW_ROOT/" RockShell "$REMOTE_USER_HOST:$REMOTE_PATH" 2>rsync_errors.log
+  "$PW_ROOT/" RockShell "$REMOTE_USER_HOST:$REMOTE_PATH" 2>$RSYNC_LOG
 RSYNC_EXIT_CODE=$?
 echo
 if [ $RSYNC_EXIT_CODE -eq 0 ]; then
     echo -e "${CHECK} Deployment complete!"
 else
     echo -e "${CROSS} Deployment failed! Rsync exited with code $RSYNC_EXIT_CODE."
-    echo -e "${RED}Please check your SSH credentials, permissions, and server status, then fix any issues and run the script again.${NC}"
-    echo -e "${RED}See rsync_errors.log for details on what went wrong.${NC}"
+    if grep -q 'No such file or directory' "$RSYNC_LOG"; then
+        echo -e "${RED}Error: One or more source or destination directories do not exist.\nCheck your PW_ROOT, RockShell folder, and DEPLOY_PATH settings.${NC}"
+    elif grep -q 'Permission denied' "$RSYNC_LOG"; then
+        echo -e "${RED}Error: Permission denied.\nCheck your SSH credentials, key permissions, and server access.${NC}"
+    else
+        echo -e "${RED}Please check your SSH credentials, permissions, server status, and source/destination directories, then fix any issues and run the script again.${NC}"
+    fi
+    echo -e "${RED}See $RSYNC_LOG for details on what went wrong.${NC}"
     exit 1
 fi

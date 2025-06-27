@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# github_setup.sh
+# deploy.sh
 #
 # Automates the setup of GitHub Actions repository variables and secrets for deployment using the GitHub CLI (gh).
 #
@@ -18,7 +18,7 @@
 # Usage:
 #   1. Ensure gh is installed and authenticated (run: gh auth login).
 #   2. Fill out .env or run the script and follow prompts.
-#   3. Run: ./github_setup.sh
+#   3. Run: ./deploy.sh
 #
 # This script will:
 #   - Load variables from .env or prompt for them
@@ -38,8 +38,13 @@ WARN="${YELLOW}⚠${NC}"
 
 # Dependency check for gh
 if ! command -v gh >/dev/null 2>&1; then
-  echo -e "${CROSS} Error: GitHub CLI (gh) is not installed. Please install it and rerun this script."
-  echo -e "\nInstallation instructions: \nhttps://github.com/cli/cli#installation\n"
+  echo -e "${CROSS} GitHub CLI (gh) is not installed or not in your PATH. Please install it and rerun this script.\nIf gh is not installed, visit https://github.com/cli/cli#installation for installation instructions."
+  exit 1
+fi
+
+# Check if gh is authenticated
+if ! gh auth status >/dev/null 2>&1; then
+  echo -e "${CROSS} GitHub CLI (gh) is not authenticated. Please run 'gh auth login' to authenticate, and ensure you have access to the repository."
   exit 1
 fi
 
@@ -49,53 +54,87 @@ if [ -f "$ENV_FILE" ]; then
   echo -e "${YELLOW}Loading variables from $ENV_FILE...${NC}"
   source "$ENV_FILE"
 else
-  echo -e "${WARN}  Warning: .env file not found at $ENV_FILE"
+  echo -e "${WARN} .env file not found at $ENV_FILE. Aborting.\nYou must create a .env file with the required variables for this script to work.\nSee .env.example for guidance."
+  exit 1
 fi
 
-# 1. SSH_KEY (id_github by default, prompt if not found)
-SSH_KEY_PATH="$HOME/.ssh/id_github"
+# SSH_KEY logic: support .env SSH_KEY as filename or path
+if [ -n "$SSH_KEY" ]; then
+  if [[ "$SSH_KEY" == */* ]]; then
+    SSH_KEY_PATH="$SSH_KEY"
+  else
+    SSH_KEY_PATH="$HOME/.ssh/$SSH_KEY"
+  fi
+else
+  SSH_KEY_PATH="$HOME/.ssh/id_github"
+fi
+
 if [ ! -f "$SSH_KEY_PATH" ]; then
   read -p "SSH private key not found at $SSH_KEY_PATH. Enter path to your SSH private key: " SSH_KEY_PATH
 fi
 if [ ! -f "$SSH_KEY_PATH" ]; then
-  echo -e "${CROSS} Error: SSH key not found at $SSH_KEY_PATH. Exiting."
+  echo -e "${CROSS} SSH key not found at $SSH_KEY_PATH. Aborting."
   exit 1
 fi
 SSH_KEY_CONTENT=$(cat "$SSH_KEY_PATH")
 
 # 2. KNOWN_HOSTS (generate from SSH_HOST)
 if [ -z "$SSH_HOST" ]; then
-  read -p "Enter your SSH_HOST (e.g. example.com): " SSH_HOST
+  read -p "Required value SSH_HOST (your SSH host) missing from .env. Aborting. Enter your SSH_HOST (e.g. example.com): " SSH_HOST
+fi
+if [ -z "$SSH_HOST" ]; then
+  echo -e "${CROSS} Required value SSH_HOST (your SSH host) missing from .env. Aborting."
+  exit 1
 fi
 KNOWN_HOSTS=$(ssh-keyscan "$SSH_HOST" 2>/dev/null)
 if [ -z "$KNOWN_HOSTS" ]; then
-  echo -e "${CROSS} Error: Could not generate KNOWN_HOSTS for $SSH_HOST. Exiting."
+  echo -e "${CROSS} Could not generate KNOWN_HOSTS for $SSH_HOST. Aborting."
   exit 1
 fi
 
 # 3. SSH_USER
 if [ -z "$SSH_USER" ]; then
-  read -p "Enter your SSH_USER: " SSH_USER
+  read -p "Required value SSH_USER (your SSH user) missing from .env. Aborting. Enter your SSH_USER: " SSH_USER
+fi
+if [ -z "$SSH_USER" ]; then
+  echo -e "${CROSS} Required value SSH_USER (your SSH user) missing from .env. Aborting."
+  exit 1
 fi
 
 # 4. DEPLOY_PATH
 if [ -z "$DEPLOY_PATH" ]; then
-  read -p "Enter your DEPLOY_PATH: " DEPLOY_PATH
+  read -p "Required value DEPLOY_PATH (your deploy path) missing from .env. Aborting. Enter your DEPLOY_PATH: " DEPLOY_PATH
+fi
+if [ -z "$DEPLOY_PATH" ]; then
+  echo -e "${CROSS} Required value DEPLOY_PATH (your deploy path) missing from .env. Aborting."
+  exit 1
 fi
 
 # 5. GITHUB_OWNER
 if [ -z "$GITHUB_OWNER" ]; then
-  read -p "Enter your GitHub repository owner (username or org): " GITHUB_OWNER
+  read -p "Required value GITHUB_OWNER (your GitHub repository owner) missing from .env. Aborting. Enter your GitHub repository owner (username or org): " GITHUB_OWNER
+fi
+if [ -z "$GITHUB_OWNER" ]; then
+  echo -e "${CROSS} Required value GITHUB_OWNER (your GitHub repository owner) missing from .env. Aborting."
+  exit 1
 fi
 
 # 6. GITHUB_REPO
 if [ -z "$GITHUB_REPO" ]; then
-  read -p "Enter your GitHub repository name: " GITHUB_REPO
+  read -p "Required value GITHUB_REPO (your GitHub repository name) missing from .env. Aborting. Enter your GitHub repository name: " GITHUB_REPO
+fi
+if [ -z "$GITHUB_REPO" ]; then
+  echo -e "${CROSS} Required value GITHUB_REPO (your GitHub repository name) missing from .env. Aborting."
+  exit 1
 fi
 
 # 7. PW_ROOT
 if [ -z "$PW_ROOT" ]; then
-  read -p "Enter your PW_ROOT (ProcessWire root path, e.g. public): " PW_ROOT
+  read -p "Required value PW_ROOT (your PW_ROOT) missing from .env. Aborting. Enter your PW_ROOT (ProcessWire root path, e.g. public): " PW_ROOT
+fi
+if [ -z "$PW_ROOT" ]; then
+  echo -e "${CROSS} Required value PW_ROOT (your PW_ROOT) missing from .env. Aborting."
+  exit 1
 fi
 
 REPO_FULL="$GITHUB_OWNER/$GITHUB_REPO"
@@ -138,6 +177,29 @@ if [ $ERRORS -eq 0 ]; then
   echo -e "${CHECK} Repository secrets upload complete.${NC}"
 else
   echo -e "${CROSS} Repository secrets upload completed with $ERRORS error(s).${NC}"
+fi
+
+# Move workflow files to .github/workflows and update references
+WORKFLOWS_DIR="$(dirname "$0")/../.github/workflows"
+mkdir -p "$WORKFLOWS_DIR"
+
+# Update main.workflow.yaml uses line with GITHUB_REPO and remove @dev
+MAIN_WORKFLOW_SRC="$(dirname "$0")/main.workflow.yaml"
+MAIN_WORKFLOW_DST="$WORKFLOWS_DIR/main.yaml"
+if [ -f "$MAIN_WORKFLOW_SRC" ]; then
+  if [ -n "$GITHUB_REPO" ]; then
+    sed "s|uses: .*RockMigrations/.github/workflows/deploy.yaml@dev|uses: $GITHUB_REPO/RockMigrations/.github/workflows/deploy.yaml|" "$MAIN_WORKFLOW_SRC" > "$MAIN_WORKFLOW_DST"
+  else
+    cp "$MAIN_WORKFLOW_SRC" "$MAIN_WORKFLOW_DST"
+  fi
+  echo "${CHECK} main.workflow.yaml moved to .github/workflows/main.yaml and updated."
+fi
+
+DEPLOY_WORKFLOW_SRC="$(dirname "$0")/deploy.workflow.yaml"
+DEPLOY_WORKFLOW_DST="$WORKFLOWS_DIR/deploy.yaml"
+if [ -f "$DEPLOY_WORKFLOW_SRC" ]; then
+  cp "$DEPLOY_WORKFLOW_SRC" "$DEPLOY_WORKFLOW_DST"
+  echo "${CHECK} deploy.workflow.yaml moved to .github/workflows/deploy.yaml."
 fi
 
 if [ $ERRORS -eq 0 ]; then
