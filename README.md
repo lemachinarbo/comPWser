@@ -174,7 +174,7 @@ To connect with our remote server and Github we will be using a pair of SSH keys
 Run this script to create and test the keys:
 
 ```sh
-chmod +x ./.build/ssh_keys.sh && ./.build/ssh_keys.sh
+chmod +x ./.build/sshkeys.sh && ./.build/sshkeys.sh
 ```
 
 You will get a confirmation message like this:

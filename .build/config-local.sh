@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# setup-config.sh - Creates/updates config-local.php from .env and ensures config.php includes it
+# config-local.sh - Creates/updates config-local.php from .env and ensures config.php includes it
 
 set -e
 
