@@ -188,18 +188,18 @@ MAIN_WORKFLOW_SRC="$(dirname "$0")/main.workflow.yaml"
 MAIN_WORKFLOW_DST="$WORKFLOWS_DIR/main.yaml"
 if [ -f "$MAIN_WORKFLOW_SRC" ]; then
   if [ -n "$GITHUB_REPO" ]; then
-    sed "s|uses: .*RockMigrations/.github/workflows/deploy.yaml@dev|uses: $GITHUB_REPO/RockMigrations/.github/workflows/deploy.yaml|" "$MAIN_WORKFLOW_SRC" > "$MAIN_WORKFLOW_DST"
+    sed "s|deploy.yaml.path|$GITHUB_OWNER/$GITHUB_REPO/.github/workflows/deploy.yaml@main|" "$MAIN_WORKFLOW_SRC" > "$MAIN_WORKFLOW_DST"
   else
     cp "$MAIN_WORKFLOW_SRC" "$MAIN_WORKFLOW_DST"
   fi
-  echo "${CHECK} main.workflow.yaml moved to .github/workflows/main.yaml and updated."
+  echo -e "${CHECK} main.workflow.yaml moved to .github/workflows/main.yaml and updated."
 fi
 
 DEPLOY_WORKFLOW_SRC="$(dirname "$0")/deploy.workflow.yaml"
 DEPLOY_WORKFLOW_DST="$WORKFLOWS_DIR/deploy.yaml"
 if [ -f "$DEPLOY_WORKFLOW_SRC" ]; then
   cp "$DEPLOY_WORKFLOW_SRC" "$DEPLOY_WORKFLOW_DST"
-  echo "${CHECK} deploy.workflow.yaml moved to .github/workflows/deploy.yaml."
+  echo -e "${CHECK} deploy.workflow.yaml moved to .github/workflows/deploy.yaml."
 fi
 
 if [ $ERRORS -eq 0 ]; then

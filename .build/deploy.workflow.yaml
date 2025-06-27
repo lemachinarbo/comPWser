@@ -99,7 +99,7 @@ jobs:
           ssh ${{ inputs.SSH_USER }}@${{ inputs.SSH_HOST }} -p22 "mkdir -p ${{ env.DEPLOY_FOLDER }}"
           rsync -avz --exclude '.git' --chmod=D755,F644 ${{ env.SRC }}/${{ env.PW_ROOT }}/ ${{ inputs.SSH_USER }}@${{ inputs.SSH_HOST }}:${{ env.DEPLOY_FOLDER }}
 
-      - name: 🐘 Get PHP Command v3
+      - name: 🐘 Get PHP Command
         id: get-php
         run: |
           if [ -z "${{ inputs.PHP_COMMAND }}" ]; then
