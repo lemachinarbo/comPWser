@@ -179,6 +179,29 @@ else
   echo -e "${CROSS} Repository secrets upload completed with $ERRORS error(s).${NC}"
 fi
 
+# Move workflow files to .github/workflows and update references
+WORKFLOWS_DIR="$(dirname "$0")/../.github/workflows"
+mkdir -p "$WORKFLOWS_DIR"
+
+# Update main.workflow.yaml uses line with GITHUB_REPO and remove @dev
+MAIN_WORKFLOW_SRC="$(dirname "$0")/main.workflow.yaml"
+MAIN_WORKFLOW_DST="$WORKFLOWS_DIR/main.yaml"
+if [ -f "$MAIN_WORKFLOW_SRC" ]; then
+  if [ -n "$GITHUB_REPO" ]; then
+    sed "s|uses: .*RockMigrations/.github/workflows/deploy.yaml@dev|uses: $GITHUB_REPO/RockMigrations/.github/workflows/deploy.yaml|" "$MAIN_WORKFLOW_SRC" > "$MAIN_WORKFLOW_DST"
+  else
+    cp "$MAIN_WORKFLOW_SRC" "$MAIN_WORKFLOW_DST"
+  fi
+  echo "${CHECK} main.workflow.yaml moved to .github/workflows/main.yaml and updated."
+fi
+
+DEPLOY_WORKFLOW_SRC="$(dirname "$0")/deploy.workflow.yaml"
+DEPLOY_WORKFLOW_DST="$WORKFLOWS_DIR/deploy.yaml"
+if [ -f "$DEPLOY_WORKFLOW_SRC" ]; then
+  cp "$DEPLOY_WORKFLOW_SRC" "$DEPLOY_WORKFLOW_DST"
+  echo "${CHECK} deploy.workflow.yaml moved to .github/workflows/deploy.yaml."
+fi
+
 if [ $ERRORS -eq 0 ]; then
   echo -e "\n${GREEN}All GitHub Actions variables and secrets have been processed successfully.${NC}\n"
 else

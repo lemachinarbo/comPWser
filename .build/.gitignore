@@ -3,7 +3,6 @@
 
 # setup
 .build/
-rsync_errors.log
 
 # ignore vendors
 vendor/

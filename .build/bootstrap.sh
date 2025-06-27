@@ -83,4 +83,5 @@ else
     echo -e "${WARN}  Skipping server file structure update and permissions fix."
 fi
 
-echo -e "\n${CHECK} All selected steps completed!${NC}\n"
+echo -e "\n${CHECK} All selected steps completed!"
+echo -e "\n${YELLOW}Reminder:${NC} Please commit and push your changes to the repository to activate the deployment workflows.\n"
