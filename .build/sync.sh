@@ -24,6 +24,8 @@ REMOTE_USER=${SSH_USER:-"user@server"}
 REMOTE_HOST=${SSH_HOST:-"server"}
 REMOTE_PATH=${DEPLOY_PATH:-"/path/to/deployment"}
 REMOTE_USER_HOST="$REMOTE_USER@$REMOTE_HOST"
+SCRIPT_DIR="$(dirname "$0")"
+ROCKSHELL_PATH="$SCRIPT_DIR/../RockShell"
 
 echo -e "${YELLOW}Deploying to remote server...${NC}"
 echo -e "Using SSH key: $SSH_KEY_PATH"
@@ -31,7 +33,7 @@ echo -e "Deploying to: $REMOTE_USER_HOST:$REMOTE_PATH"
 
 echo
 # Change to project root so rsync can find public and RockShell
-cd "$(dirname "$0")/.."
+cd "$SCRIPT_DIR/.."
 
 echo
 # Comment out both options by default, then enable the one specified by HTACCESS_OPTION if set
@@ -56,7 +58,7 @@ if [ ! -d "$PW_ROOT" ]; then
     exit 1
 fi
 if [ ! -d "$ROCKSHELL_PATH" ]; then
-    echo -e "${CROSS} Source directory '$ROCKSHELL_PATH' does not exist. Aborting deployment."
+    echo -e "${CROSS} RockShell directory '$ROCKSHELL_PATH' does not exist. Aborting deployment."
     exit 1
 fi
 

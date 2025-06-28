@@ -30,7 +30,7 @@
     "setup-submodules": [
       "[ -d .git ] || git init --initial-branch=main",
       "[ -d RockShell/.git ] || git submodule add -b dev https://github.com/lemachinarbo/RockShell.git RockShell || echo 'RockShell submodule already exists'",
-      "[ -d public/site/modules/RockMigrations/.git ] || git submodule add https://github.com/baumrock/RockMigrations.git public/site/modules/RockMigrations || echo 'RockMigrations submodule already exists'",
+      "[ -d public/site/modules/RockMigrations/.git ] || git submodule add -b dev https://github.com/lemachinarbo/RockMigrations.git public/site/modules/RockMigrations || echo 'RockMigrations submodule already exists'",
       "git submodule update --init --recursive"
     ],
     "post-install-cmd": [
