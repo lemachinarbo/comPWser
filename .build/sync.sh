@@ -58,7 +58,7 @@ if [ ! -d "$PW_ROOT" ]; then
     exit 1
 fi
 if [ ! -d "$ROCKSHELL_PATH" ]; then
-    echo -e "${CROSS} Source directory '$ROCKSHELL_PATH' does not exist. Aborting deployment."
+    echo -e "${CROSS} RockShell directory '$ROCKSHELL_PATH' does not exist. Aborting deployment."
     exit 1
 fi
 
