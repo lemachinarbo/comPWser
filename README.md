@@ -101,10 +101,6 @@ It’s more catchy… and honestly, my original intention was just one command, 
 
 To install ProcessWire, I am using [PWInstaller](https://github.com/lemachinarbo/RockShell/blob/8ddcea56fe1cd7c678ba18df81b1834a6b1fd27f/App/Commands/PwInstaller.php), a variation of [Bernhard's installer](https://github.com/baumrock/RockShell/blob/21d6808c35fbbcbf192f05b3fd3d88fa96b2b7cf/App/Commands/PwInstall.php) that allows you to skip the prompts and install ProcessWire using some default settings. If you want an interactive ProcessWire installation, simply remove the `--lazy` parameter in the `composer.json` file
 
-### 3.4 What's with the cake?  
-
-The cake is a lie.
-
 ```
 [ -f RockShell/rock ] && php RockShell/rock pw:installer --lazy || echo 'RockShell command not available'
 ```
@@ -147,3 +143,7 @@ private $lazyDefaults = [
 'debugMode' => 1,
 ];
 ```
+
+### 3.4 What's with the cake?  
+
+The cake is a lie.
