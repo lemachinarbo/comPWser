@@ -83,6 +83,10 @@ You're done! Publishing your website is now as simple as pushing your changes to
 - Moves and updates GitHub Actions workflow files (deploy.yaml and main.yaml) into .github/workflows for CI/CD
 
 
+What's next? Check what else you can do when [moving to production](https://www.baumrock.com/en/processwire/modules/rockmigrations/docs/deploy/#rockshell-filesondemand).
+
+Nice. Time to enjoy some cake.
+
 ## 3. F.A.Q
 
 ### 3.1 Why are you downloading ProcessWire with composer?
@@ -139,3 +143,7 @@ private $lazyDefaults = [
 'debugMode' => 1,
 ];
 ```
+
+### 3.4 What's with the cake?  
+
+The cake is a lie.

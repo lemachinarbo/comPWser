@@ -2,13 +2,11 @@
 
 This guide assumes you're using DDEV for local development. Aren’t you? If not, it's time to [convert](https://ddev.com/get-started/).
 
-That said, you don’t need DDEV to follow along — just adapt any DDEV-specific references as needed.
-
 ## Part 1: Local processwire installation
 
 ### Project structure
 
-When installing ProcessWire, I like to follow the structure from (MoritzLost's Composer Integration guide)[https://processwire.dev/integrate-composer-with-processwire/#recommended-directory-structure-for-processwire-projects-with-composer]. Why? because it keeps all ProcessWire files in one folder and leaves everything else—packages, build tools, vendor, node stuff—outside: 
+When installing ProcessWire, I like to follow the structure from [MoritzLost's Composer Integration guide]([https://processwire.dev/integrate-composer-with-processwire/#recommended-directory-structure-for-processwire-projects-with-composer). Why? because it keeps all ProcessWire files in one folder and leaves everything else—packages, build tools, vendor, node stuff—outside: 
 
 ```
 /                  # root
@@ -30,7 +28,7 @@ With DDEV, we can set this up right from the start when creating our project. Si
 Docroot Location (project root): public
 ```
 
-Or, if we already have a project, we can update the `docroot` by editing the `docroot` line in `.ddev/config.yaml` file:
+Or, if you already have a project, you can update the `docroot` by editing the `docroot` line in `.ddev/config.yaml` file:
 
 ```yaml
 name: oz
@@ -50,9 +48,16 @@ web_environment: []
 corepack_enable: false
 ```
 
+Or, rigth from your terminal:
+
+```sh
+ddev config --docroot=public
+ddev restart
+```
+
 ### Installing Processwire
 
-Good news, installing is the easy part. We just need to download the Composer "installer" into our project `root` directory and run `composer install`:
+This is the easy part! We just need to download the Composer "installer" into our project `root` directory and run `composer install`:
 
 ```bash
 wget https://raw.githubusercontent.com/lemachinarbo/comPWser/dev/composer.json
@@ -69,7 +74,9 @@ comPWser is essentially a collection of scripts to automate the setup of a Proce
 
 If you have never heard of or used Deployments before, please start by reading Bernhard's guide ((a step by step video)[https://www.youtube.com/watch?v=4wS7xWUtFes] is included!). 
 
-> **Note:** A GitHub repository for the project is required, [create one](https://github.com/new) if you haven't already.
+### 0. Github Repository
+
+A GitHub repository for the project is required, [create one](https://github.com/new) if you haven't already.
 
 
 ### 1. Creating a .env environment file
@@ -80,36 +87,27 @@ Inside the `.build` folder, you will find a `.env.example` template. Copy it to 
 mv ./.build/.env.example ./.env
 ```
 
-Open the file and edit the values, here's an example:
+The open the file and edit the values. Here's an example:
 
 ```sh
-# GitHub repository details
 GITHUB_OWNER=lemachinarbo
-GITHUB_REPO=test
+GITHUB_REPO=myrepo
 CI_TOKEN=  # Leave this for the next step
 
-# SSH details — used to connect to the hosting server
 SSH_HOST=myserver.com
 SSH_USER=myusername
 SSH_KEY=id_github # We will be creating this key later
 
-# Deployment details
-
-# Path to your "docroot", the website's public directory on the server 
 DEPLOY_PATH=/var/www/html
+PW_ROOT=public # We installed ProcessWire here, leave as is
 
-# If ProcessWire is installed in the public folder: PW_ROOT=public
-# If installed in the root folder, set it empty: PW_ROOT=
-PW_ROOT=public
-
-# Add your server configuration details below
 SERVER_HOST=yourdomain.com
 SERVER_DB_HOST=localhost
 SERVER_DB_USER=example_user
 SERVER_DB_NAME=example_db
 SERVER_DB_PASS=password1234
 
-HTACCESS_OPTION=SymLinksifOwnerMatch
+HTACCESS_OPTION=SymLinksifOwnerMatch # This one is explained in your .env.example file
 ```
 
 #### Creating a Github Personal Access Token
@@ -126,10 +124,9 @@ Copy the token and paste it in your .env file
 CI_TOKEN=github_pat_xxx
 ```
 
-
 #### 2. Creating SSH keys
 
-To connect with our remote server and Github we will be using a pair of SSH keys (one personal key named `id_ed25519` and another one that we can reuse in our projects `id_github`). 
+Now let's generate a pair of SSH keys: a personal key named `id_ed25519`, and a reusable project key named `id_github` for connecting to your server. 
 
 Run this script to create and test the keys:
 
@@ -137,15 +134,12 @@ Run this script to create and test the keys:
 chmod +x ./.build/sshkeys.sh && ./.build/sshkeys.sh
 ```
 
-You will get a confirmation message like this:
+If you see a confirmation message like this one, you're all set:
 ```
 Testing personal key authentication...
 ✓ Personal key authentication successful.
 Testing project key authentication...
 ✓ Project key authentication successful.
-
-All SSH key operations complete.
-Personal and project keys were created (if missing), uploaded to the server, and authentication was tested successfully.
 ```
 
 #### 3. Installing Github CLI
@@ -163,7 +157,7 @@ Follow the prompts and be sure to select the `id_github.pub` SSH key when asked 
 
 #### 4. Running bootstrap
 
-No more setup is needed. Run the bootsrap script and follow the prompts:
+No more setup is needed! Run the bootsrap script and follow the prompts:
 
 ```sh
 chmod +x ./.build/bootstrap.sh && ./.build/bootstrap.sh
@@ -178,7 +172,7 @@ And we are done! Check your server docroot folder and you will have something li
 ├── shared/     # Shared files (e.g. user uploads, logs, cache)
 ```
 
-Update your web server configuration (e.g., Apache, Nginx, or your hosting control panel) to point the `docroot` to `current` instead of the base docroot directory. This way, your website will always serve the latest deployed release. 
+Which means, you need to update your web server configuration (from your hosting control panel) to point the `docroot` to `current` instead of the base docroot directory. This way, your website will be visible with the latest deployed release. 
 
 ```
 OLD: /path/to/your/docroot
