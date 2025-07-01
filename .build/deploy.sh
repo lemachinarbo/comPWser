@@ -1,64 +1,52 @@
 #!/bin/bash
 
-# deploy.sh
-#
-# Automates the setup of GitHub Actions repository variables and secrets for deployment using the GitHub CLI (gh).
-#
-# Requirements:
-#   - gh (GitHub CLI) installed and authenticated (https://cli.github.com/)
-#   - .env file with the following variables (or you will be prompted):
-#       SSH_HOST      # Your server's hostname (e.g. example.com)
-#       SSH_USER      # SSH username for your server
-#       DEPLOY_PATH   # Path to your website on the server (e.g. /var/www/example.com)
-#       PW_ROOT       # ProcessWire root path (e.g. public)
-#       GITHUB_OWNER  # GitHub username or organization
-#       GITHUB_REPO   # GitHub repository name
-#       CI_TOKEN      # (Optional) GitHub Personal Access Token for CI (will be prompted if not set)
-#
-# Usage:
-#   1. Ensure gh is installed and authenticated (run: gh auth login).
-#   2. Fill out .env or run the script and follow prompts.
-#   3. Run: ./deploy.sh
-#
-# This script will:
-#   - Load variables from .env or prompt for them
-#   - Use ~/.ssh/id_github as the default SSH key (or prompt for another)
-#   - Generate KNOWN_HOSTS from SSH_HOST
-#   - Upload variables and secrets to your GitHub repository using gh
-#   - Prompt for CI_TOKEN if not set, and upload as a secret
+# deploy.sh - Automates the setup of GitHub Actions repository variables and secrets for deployment using the GitHub CLI (gh), with multi-environment support
 
-# Colors and symbols
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-CHECK="${GREEN}✓${NC}"
-CROSS="${RED}✗${NC}"
-WARN="${YELLOW}⚠${NC}"
+# Source common logging/colors and env helpers
+source "$(cd "$(dirname "$0")" && pwd)/common.sh"
 
 # Dependency check for gh
 if ! command -v gh >/dev/null 2>&1; then
-  echo -e "${CROSS} GitHub CLI (gh) is not installed or not in your PATH. Please install it and rerun this script.\nIf gh is not installed, visit https://github.com/cli/cli#installation for installation instructions."
+  log_error "GitHub CLI (gh) is not installed or not in your PATH. Please install it and rerun this script.\nIf gh is not installed, visit https://github.com/cli/cli#installation for installation instructions."
   exit 1
 fi
 
 # Check if gh is authenticated
 if ! gh auth status >/dev/null 2>&1; then
-  echo -e "${CROSS} GitHub CLI (gh) is not authenticated. Please run 'gh auth login' to authenticate, and ensure you have access to the repository."
+  log_error "GitHub CLI (gh) is not authenticated. Please run 'gh auth login' to authenticate, and ensure you have access to the repository."
   exit 1
 fi
 
 # Load variables from .env if present
 ENV_FILE="$(dirname "$0")/../.env"
 if [ -f "$ENV_FILE" ]; then
-  echo -e "${YELLOW}Loading variables from $ENV_FILE...${NC}"
+  log_info "Loading variables from $ENV_FILE..."
   source "$ENV_FILE"
 else
-  echo -e "${WARN} .env file not found at $ENV_FILE. Aborting.\nYou must create a .env file with the required variables for this script to work.\nSee .env.example for guidance."
+  log_warn ".env file not found at $ENV_FILE. Aborting.\nYou must create a .env file with the required variables for this script to work.\nSee .env.example for guidance."
   exit 1
 fi
 
+# Detect available environments from .env (e.g., PROD_, STAGING_, etc.)
+ENVS=$(grep -oE '^[A-Z]+_' "$ENV_FILE" | cut -d_ -f1 | sort | uniq)
+
+# Prompt for environment if not provided as argument
+if [ -n "$1" ]; then
+    ENV="$1"
+else
+    log_ask "Select environment number: "
+    select ENV in "${ENVS[@]}"; do
+        if [ -n "$ENV" ]; then
+            break
+        else
+            log_error "Invalid selection. Please enter a valid number."
+        fi
+    done
+fi
+PREFIX="${ENV}_"
+
 # SSH_KEY logic: support .env SSH_KEY as filename or path
+SSH_KEY="$(get_env SSH_KEY)"
 if [ -n "$SSH_KEY" ]; then
   if [[ "$SSH_KEY" == */* ]]; then
     SSH_KEY_PATH="$SSH_KEY"
@@ -73,138 +61,92 @@ if [ ! -f "$SSH_KEY_PATH" ]; then
   read -p "SSH private key not found at $SSH_KEY_PATH. Enter path to your SSH private key: " SSH_KEY_PATH
 fi
 if [ ! -f "$SSH_KEY_PATH" ]; then
-  echo -e "${CROSS} SSH key not found at $SSH_KEY_PATH. Aborting."
+  log_error "SSH key not found at $SSH_KEY_PATH. Aborting."
   exit 1
 fi
 SSH_KEY_CONTENT=$(cat "$SSH_KEY_PATH")
+
+# Use global variables only (no environment-prefixed PW_ROOT support yet)
+SSH_HOST="$(get_env SSH_HOST)"
+SSH_USER="$(get_env SSH_USER)"
+DEPLOY_PATH="$(get_env PATH)"
+PW_ROOT="$PW_ROOT"
+
+# Check required variables and give informative error if missing
+for var in SSH_HOST SSH_USER DEPLOY_PATH PW_ROOT GITHUB_OWNER GITHUB_REPO; do
+  value="$(eval echo \$$var)"
+  if [ -z "$value" ]; then
+    log_error "$var is not set in your .env file. Please check your .env file."
+    exit 1
+  fi
+done
 
 # 2. KNOWN_HOSTS (generate from SSH_HOST)
 if [ -z "$SSH_HOST" ]; then
   read -p "Required value SSH_HOST (your SSH host) missing from .env. Aborting. Enter your SSH_HOST (e.g. example.com): " SSH_HOST
 fi
 if [ -z "$SSH_HOST" ]; then
-  echo -e "${CROSS} Required value SSH_HOST (your SSH host) missing from .env. Aborting."
+  log_error "Required value SSH_HOST (your SSH host) missing from .env. Aborting."
   exit 1
 fi
 KNOWN_HOSTS=$(ssh-keyscan "$SSH_HOST" 2>/dev/null)
 if [ -z "$KNOWN_HOSTS" ]; then
-  echo -e "${CROSS} Could not generate KNOWN_HOSTS for $SSH_HOST. Aborting."
-  exit 1
-fi
-
-# 3. SSH_USER
-if [ -z "$SSH_USER" ]; then
-  read -p "Required value SSH_USER (your SSH user) missing from .env. Aborting. Enter your SSH_USER: " SSH_USER
-fi
-if [ -z "$SSH_USER" ]; then
-  echo -e "${CROSS} Required value SSH_USER (your SSH user) missing from .env. Aborting."
-  exit 1
-fi
-
-# 4. DEPLOY_PATH
-if [ -z "$DEPLOY_PATH" ]; then
-  read -p "Required value DEPLOY_PATH (your deploy path) missing from .env. Aborting. Enter your DEPLOY_PATH: " DEPLOY_PATH
-fi
-if [ -z "$DEPLOY_PATH" ]; then
-  echo -e "${CROSS} Required value DEPLOY_PATH (your deploy path) missing from .env. Aborting."
-  exit 1
-fi
-
-# 5. GITHUB_OWNER
-if [ -z "$GITHUB_OWNER" ]; then
-  read -p "Required value GITHUB_OWNER (your GitHub repository owner) missing from .env. Aborting. Enter your GitHub repository owner (username or org): " GITHUB_OWNER
-fi
-if [ -z "$GITHUB_OWNER" ]; then
-  echo -e "${CROSS} Required value GITHUB_OWNER (your GitHub repository owner) missing from .env. Aborting."
-  exit 1
-fi
-
-# 6. GITHUB_REPO
-if [ -z "$GITHUB_REPO" ]; then
-  read -p "Required value GITHUB_REPO (your GitHub repository name) missing from .env. Aborting. Enter your GitHub repository name: " GITHUB_REPO
-fi
-if [ -z "$GITHUB_REPO" ]; then
-  echo -e "${CROSS} Required value GITHUB_REPO (your GitHub repository name) missing from .env. Aborting."
-  exit 1
-fi
-
-# 7. PW_ROOT
-if [ -z "$PW_ROOT" ]; then
-  read -p "Required value PW_ROOT (your PW_ROOT) missing from .env. Aborting. Enter your PW_ROOT (ProcessWire root path, e.g. public): " PW_ROOT
-fi
-if [ -z "$PW_ROOT" ]; then
-  echo -e "${CROSS} Required value PW_ROOT (your PW_ROOT) missing from .env. Aborting."
+  log_error "Could not generate KNOWN_HOSTS for $SSH_HOST. Aborting."
   exit 1
 fi
 
 REPO_FULL="$GITHUB_OWNER/$GITHUB_REPO"
 
-echo
-echo -e "${GREEN}Summary of values to be uploaded to GitHub:${NC}"
-echo -e "- SSH_KEY: $SSH_KEY_PATH"
-echo -e "- KNOWN_HOSTS: (generated for $SSH_HOST)"
-echo -e "- SSH_HOST: $SSH_HOST"
-echo -e "- SSH_USER: $SSH_USER"
-echo -e "- DEPLOY_PATH: $DEPLOY_PATH"
-echo -e "- PW_ROOT: $PW_ROOT"
-echo -e "- GITHUB_OWNER: $GITHUB_OWNER"
-echo -e "- GITHUB_REPO: $GITHUB_REPO"
+log_info "\nSummary of values to be uploaded to GitHub:"
+log_info "- SSH_KEY: $SSH_KEY_PATH"
+log_info "- KNOWN_HOSTS: (generated for $SSH_HOST)"
+log_info "- SSH_HOST: $SSH_HOST"
+log_info "- SSH_USER: $SSH_USER"
+log_info "- DEPLOY_PATH: $DEPLOY_PATH"
+log_info "- PW_ROOT: $PW_ROOT"
+log_info "- GITHUB_OWNER: $GITHUB_OWNER"
+log_info "- GITHUB_REPO: $GITHUB_REPO"
 
 ERRORS=0
 
-echo -e "\n${YELLOW}Uploading repository variables to GitHub...${NC}"
-gh variable set SSH_HOST --body "$SSH_HOST" --repo "$REPO_FULL" && echo -e "${CHECK} Updated variable SSH_HOST for $REPO_FULL" || { echo -e "${CROSS} Failed to set SSH_HOST"; ERRORS=$((ERRORS+1)); }
-gh variable set SSH_USER --body "$SSH_USER" --repo "$REPO_FULL" && echo -e "${CHECK} Updated variable SSH_USER for $REPO_FULL" || { echo -e "${CROSS} Failed to set SSH_USER"; ERRORS=$((ERRORS+1)); }
-gh variable set DEPLOY_PATH --body "$DEPLOY_PATH" --repo "$REPO_FULL" && echo -e "${CHECK} Updated variable DEPLOY_PATH for $REPO_FULL" || { echo -e "${CROSS} Failed to set DEPLOY_PATH"; ERRORS=$((ERRORS+1)); }
-gh variable set PW_ROOT --body "$PW_ROOT" --repo "$REPO_FULL" && echo -e "${CHECK} Updated variable PW_ROOT for $REPO_FULL" || { echo -e "${CROSS} Failed to set PW_ROOT"; ERRORS=$((ERRORS+1)); }
+log_info "\nUploading repository secrets to GitHub..."
+# Upload repository secrets to GitHub
 
-if [ $ERRORS -eq 0 ]; then
-  echo -e "${CHECK} Repository variables upload complete.${NC}"
-else
-  echo -e "${CROSS} Repository variables upload completed with $ERRORS error(s).${NC}"
-fi
-
-echo -e "\n${YELLOW}Uploading repository secrets to GitHub...${NC}"
-gh secret set SSH_KEY --body "$SSH_KEY_CONTENT" --repo "$REPO_FULL" && echo -e "${CHECK} Set Actions secret SSH_KEY for $REPO_FULL" || { echo -e "${CROSS} Failed to set SSH_KEY"; ERRORS=$((ERRORS+1)); }
-gh secret set KNOWN_HOSTS --body "$KNOWN_HOSTS" --repo "$REPO_FULL" && echo -e "${CHECK} Set Actions secret KNOWN_HOSTS for $REPO_FULL" || { echo -e "${CROSS} Failed to set KNOWN_HOSTS"; ERRORS=$((ERRORS+1)); }
+# Upload CI_TOKEN as a global repository secret (shared by all environments)
 if [ -z "$CI_TOKEN" ]; then
   read -s -p "Enter your CI_TOKEN (GitHub Personal Access Token for CI): " CI_TOKEN
   echo
 fi
-gh secret set CI_TOKEN --body "$CI_TOKEN" --repo "$REPO_FULL" && echo -e "${CHECK} Set Actions secret CI_TOKEN for $REPO_FULL" || { echo -e "${CROSS} Failed to set CI_TOKEN"; ERRORS=$((ERRORS+1)); }
+gh secret set CI_TOKEN --body "$CI_TOKEN" --repo "$REPO_FULL" || { log_error "Failed to set CI_TOKEN"; ERRORS=$((ERRORS+1)); }
+
+# Create the GitHub environment if it doesn't exist
+
+echo
+GITHUB_ENV_API="/repos/$GITHUB_OWNER/$GITHUB_REPO/environments/$ENV"
+log_info "Ensuring GitHub environment '$ENV' exists..."
+gh api --method PUT -H "Accept: application/vnd.github+json" "$GITHUB_ENV_API" >/dev/null 2>&1 && log_ok "Environment '$ENV' ensured on GitHub." || log_error "Failed to create or access environment '$ENV' on GitHub."
+
+# Upload environment-scoped variables to GitHub
+
+log_info "\nUploading environment variables to GitHub environment '$ENV'..."
+gh variable set SSH_HOST --env "$ENV" --body "$SSH_HOST" --repo "$REPO_FULL" || { log_error "Failed to set SSH_HOST"; ERRORS=$((ERRORS+1)); }
+gh variable set SSH_USER --env "$ENV" --body "$SSH_USER" --repo "$REPO_FULL" || { log_error "Failed to set SSH_USER"; ERRORS=$((ERRORS+1)); }
+gh variable set DEPLOY_PATH --env "$ENV" --body "$DEPLOY_PATH" --repo "$REPO_FULL" || { log_error "Failed to set DEPLOY_PATH"; ERRORS=$((ERRORS+1)); }
+gh variable set PW_ROOT --env "$ENV" --body "$PW_ROOT" --repo "$REPO_FULL" || { log_error "Failed to set PW_ROOT"; ERRORS=$((ERRORS+1)); }
+
+log_info "\nUploading environment secrets to GitHub environment '$ENV'..."
+gh secret set SSH_KEY --env "$ENV" --body "$SSH_KEY_CONTENT" --repo "$REPO_FULL" || { log_error "Failed to set SSH_KEY"; ERRORS=$((ERRORS+1)); }
+gh secret set KNOWN_HOSTS --env "$ENV" --body "$KNOWN_HOSTS" --repo "$REPO_FULL" || { log_error "Failed to set KNOWN_HOSTS"; ERRORS=$((ERRORS+1)); }
 
 if [ $ERRORS -eq 0 ]; then
-  echo -e "${CHECK} Repository secrets upload complete.${NC}"
+  log_ok "Environment variables and secrets upload complete."
 else
-  echo -e "${CROSS} Repository secrets upload completed with $ERRORS error(s).${NC}"
+  log_error "Environment variables and secrets upload completed with $ERRORS error(s)."
 fi
 
-# Move workflow files to .github/workflows and update references
-WORKFLOWS_DIR="$(dirname "$0")/../.github/workflows"
-mkdir -p "$WORKFLOWS_DIR"
+# Removed workflow file moving/updating logic. Now handled by workflows.sh
 
-# Update main.workflow.yaml uses line with GITHUB_REPO and remove @dev
-MAIN_WORKFLOW_SRC="$(dirname "$0")/main.workflow.yaml"
-MAIN_WORKFLOW_DST="$WORKFLOWS_DIR/main.yaml"
-if [ -f "$MAIN_WORKFLOW_SRC" ]; then
-  if [ -n "$GITHUB_REPO" ]; then
-    sed "s|deploy.yaml.path|$GITHUB_OWNER/$GITHUB_REPO/.github/workflows/deploy.yaml@main|" "$MAIN_WORKFLOW_SRC" > "$MAIN_WORKFLOW_DST"
-  else
-    cp "$MAIN_WORKFLOW_SRC" "$MAIN_WORKFLOW_DST"
-  fi
-  echo -e "${CHECK} main.workflow.yaml moved to .github/workflows/main.yaml and updated."
-fi
-
-DEPLOY_WORKFLOW_SRC="$(dirname "$0")/deploy.workflow.yaml"
-DEPLOY_WORKFLOW_DST="$WORKFLOWS_DIR/deploy.yaml"
-if [ -f "$DEPLOY_WORKFLOW_SRC" ]; then
-  cp "$DEPLOY_WORKFLOW_SRC" "$DEPLOY_WORKFLOW_DST"
-  echo -e "${CHECK} deploy.workflow.yaml moved to .github/workflows/deploy.yaml."
-fi
-
-if [ $ERRORS -eq 0 ]; then
-  echo -e "\n${GREEN}All GitHub Actions variables and secrets have been processed successfully.${NC}\n"
-else
-  echo -e "\n${RED}There were $ERRORS error(s) during the process. Please review the messages above, fix any issues, and run the script again.${NC}\n"
+if [ $ERRORS -ne 0 ]; then
+  log_error "There were $ERRORS error(s) during the process. Please review the messages above, fix any issues, and run the script again."
   exit 1
 fi

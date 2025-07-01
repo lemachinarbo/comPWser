@@ -10,7 +10,9 @@ node_modules/
 
 # sensible files 
 .env
+public/site/config.php.bak
 public/site/config-local.php
+public/site/config-local*
 
 # assets
 public/site/assets/*
