@@ -3,7 +3,7 @@
 # workflows.sh - Generates GitHub Actions workflow YAMLs for each environment/branch pair
 
 # Source common logging/colors and env helpers
-source "$(cd "$(dirname "$0")" && pwd)/common.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 WORKFLOWS_DIR="$SCRIPT_DIR/../.github/workflows"
 mkdir -p "$WORKFLOWS_DIR"
@@ -78,7 +78,7 @@ else
 fi
 
 # Generate workflow file from template (after branch selection)
-TEMPLATE_FILE="$SCRIPT_DIR/../.build/workflow.template.yaml"
+TEMPLATE_FILE="$SCRIPT_DIR/../workflows/workflow.template.yaml"
 WORKFLOW_FILE="$WORKFLOWS_DIR/${ENV,,}.yaml"
 if [ ! -f "$TEMPLATE_FILE" ]; then
     log_error "Workflow template $TEMPLATE_FILE not found."
@@ -93,13 +93,13 @@ log_ok "Workflow for $ENV created at $WORKFLOW_FILE (triggers on branch: $BRANCH
 
 # Ensure deploy.yaml reusable workflow is in .github/workflows/ (do this after creating the env workflow)
 DEPLOY_WORKFLOW="$SCRIPT_DIR/../.github/workflows/deploy.yaml"
-DEPLOY_BUILD="$SCRIPT_DIR/../.build/deploy.yaml"
+DEPLOY_BUILD="$SCRIPT_DIR/../workflows/deploy.yaml"
 if [ ! -f "$DEPLOY_WORKFLOW" ]; then
     if [ -f "$DEPLOY_BUILD" ]; then
         mv "$DEPLOY_BUILD" "$DEPLOY_WORKFLOW"
         log_ok "Moved deploy.yaml reusable workflow to .github/workflows/deploy.yaml."
     else
-        log_error "deploy.yaml not found in .build or .github/workflows. Please add it manually."
+        log_error "deploy.yaml not found in workflows or .github/workflows. Please add it manually."
         exit 1
     fi
 else

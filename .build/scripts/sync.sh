@@ -2,10 +2,12 @@
 
 # sync.sh - Sync files to the selected environment's server using rsync and environment-prefixed variables
 
-# Source common logging/colors and env helpers
-source "$(cd "$(dirname "$0")" && pwd)/common.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-ROCKSHELL_PATH="$SCRIPT_DIR/../RockShell"
+# Source common logging/colors and env helpers
+source "$SCRIPT_DIR/common.sh"
+
+ROCKSHELL_PATH="$SCRIPT_DIR/../../RockShell"
 
 echo
 # Check .env file
@@ -51,7 +53,17 @@ log_info "Using SSH key: $SSH_KEY_PATH"
 log_info "Deploying to: $REMOTE_USER_HOST:$REMOTE_PATH"
 
 # Change to project root so rsync can find public and RockShell
-cd "$SCRIPT_DIR/.."
+cd "$SCRIPT_DIR/../.."
+
+# Check if source folders exist before running rsync
+if [ ! -d "$PW_ROOT" ]; then
+    log_error "Source directory PW_ROOT ('$PW_ROOT') does not exist. Aborting deployment."
+    exit 1
+fi
+if [ ! -d "$ROCKSHELL_PATH" ]; then
+    log_error "RockShell directory '$ROCKSHELL_PATH' does not exist. Aborting deployment."
+    exit 1
+fi
 
 # Comment out both options by default, then enable the one specified by HTACCESS_OPTION if set
 HTACCESS_FILE="$PW_ROOT/.htaccess"
@@ -68,16 +80,6 @@ if [ -f "$HTACCESS_FILE" ]; then
     else
         log_warn "Both Options directives in .htaccess are commented out (no override set)."
     fi
-fi
-
-# Check if source folders exist before running rsync
-if [ ! -d "$PW_ROOT" ]; then
-    log_error "Source directory PW_ROOT ('$PW_ROOT') does not exist. Aborting deployment."
-    exit 1
-fi
-if [ ! -d "$ROCKSHELL_PATH" ]; then
-    log_error "RockShell directory '$ROCKSHELL_PATH' does not exist. Aborting deployment."
-    exit 1
 fi
 
 # Temporarily move all config files except config.php out of public/site/
@@ -129,8 +131,3 @@ else
     log_error "See $RSYNC_LOG for details on what went wrong."
     exit 1
 fi
-
-echo "[DEBUG] Listing public/site/ before rsync:"
-ls -l public/site/
-echo "[DEBUG] Listing public/site/ after rsync and cleanup:"
-ls -l public/site/

@@ -3,7 +3,7 @@
 # sshkeys-generate.sh - Generates personal and project SSH keys if they do not exist
 
 # Source common logging/colors and env helpers
-source "$(cd "$(dirname "$0")" && pwd)/common.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 PERSONAL_KEY="$HOME/.ssh/id_ed25519"
 PROJECT_KEY="$HOME/.ssh/id_github"

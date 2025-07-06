@@ -5,7 +5,7 @@
 set -e
 
 # Source common logging/colors and env helpers
-source "$(cd "$(dirname "$0")" && pwd)/common.sh"
+source "$(cd "$(dirname "$0")" && pwd)/scripts/common.sh"
 
 log_header "Welcome to the ComPWser Environment Setup tool"
 log_info "This script will guide you through setting up your environment for automated deployments."

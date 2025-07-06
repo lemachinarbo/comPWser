@@ -4,9 +4,8 @@
 
 set -e
 
-
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-SITE_DIR="$SCRIPT_DIR/../public/site"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SITE_DIR="$SCRIPT_DIR/../../public/site"
 CONFIG_MAIN="$SITE_DIR/config.php"
 LOCAL_CONFIG="$SITE_DIR/config-local.php"
 TMP_CONFIG="$CONFIG_MAIN.tmp"

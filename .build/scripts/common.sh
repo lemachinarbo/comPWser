@@ -24,8 +24,16 @@ log_ask() {
 log_fatal() { echo -e "\n${RED}$*${NC}\n"; }
 
 # Script and env file locations
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ENV_FILE="$SCRIPT_DIR/../.env"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="$SCRIPT_DIR/../../.env"
+
+# Source .env file if it exists
+if [ -f "$ENV_FILE" ]; then
+    source "$ENV_FILE"
+else
+    log_error ".env file not found at $ENV_FILE"
+    exit 1
+fi
 
 # Helper to get value from .env with prefix
 get_env() {

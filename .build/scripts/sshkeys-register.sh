@@ -3,7 +3,7 @@
 # sshkeys-register.sh - Uploads public SSH keys to the selected environment's server and tests authentication
 
 # Source common logging/colors and env helpers
-source "$(cd "$(dirname "$0")" && pwd)/common.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 # Load .env variables
 if [ -f "$ENV_FILE" ]; then

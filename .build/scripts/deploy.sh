@@ -17,16 +17,6 @@ if ! gh auth status >/dev/null 2>&1; then
   exit 1
 fi
 
-# Load variables from .env if present
-ENV_FILE="$(dirname "$0")/../.env"
-if [ -f "$ENV_FILE" ]; then
-  log_info "Loading variables from $ENV_FILE..."
-  source "$ENV_FILE"
-else
-  log_warn ".env file not found at $ENV_FILE. Aborting.\nYou must create a .env file with the required variables for this script to work.\nSee .env.example for guidance."
-  exit 1
-fi
-
 # Detect available environments from .env (e.g., PROD_, STAGING_, etc.)
 ENVS=$(grep -oE '^[A-Z]+_' "$ENV_FILE" | cut -d_ -f1 | sort | uniq)
 
@@ -73,10 +63,12 @@ DEPLOY_PATH="$(get_env PATH)"
 PW_ROOT="$PW_ROOT"
 
 # Check required variables and give informative error if missing
-for var in SSH_HOST SSH_USER DEPLOY_PATH PW_ROOT GITHUB_OWNER GITHUB_REPO; do
+for var in SSH_HOST SSH_USER DEPLOY_PATH GITHUB_OWNER GITHUB_REPO; do
   value="$(eval echo \$$var)"
+  
+  env_var="${PREFIX}${var}"
   if [ -z "$value" ]; then
-    log_error "$var is not set in your .env file. Please check your .env file."
+    log_error "$var is not set (expected env variable: $env_var) in your .env file. Please check your .env file."
     exit 1
   fi
 done
