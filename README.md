@@ -15,8 +15,8 @@ With ComPWser you can do 2 things:
   - [1. Requirements](#1-requirements)
   - [2. Quick Install Processwire](#2-quick-install-processwire)
   - [3. Quick Auto Deployment via GitHub Actions](#3-quick-auto-deployment-via-github-actions)
-  - [5. Step by step guide](./.build/docs/guide.md)
   - [4. F.A.Q](#4-faq)
+  - [5. Step by step guide](./.build/docs/guide.md)
 
 
 ## 1. Requirements
@@ -24,7 +24,6 @@ With ComPWser you can do 2 things:
 - Composer (Included by default with DDEV)
 - PHP >= 8.0
 - Unix-like environment (Linux, macOS, or WSL on Windows)* *Only tested on Linux*
-
 
 ## 2. Quick Install Processwire
 Set the `docroot` of your DDEV container to `public` by updating `docroot: public` in `./.ddev/config.yaml`, then download the Composer project file and run the install.
@@ -38,8 +37,9 @@ ddev composer install
 
 ### 2.1. What It Does
 - Downloads [ProcessWire](https://github.com/processwire/processwire/)
-- Adds [RockMigrations](https://github.com/baumrock/RockMigrations) and [RockShell](https://github.com/baumrock/RockShell) as Git submodules
 - Installs ProcessWire in `/public`
+- Initializes a local Git repository with main as the initial branch 
+- Adds [RockMigrations](https://github.com/baumrock/RockMigrations) and [RockShell](https://github.com/baumrock/RockShell) as Git submodules
 - Installs the RockMigrations module
 - Backups Database
 - Cleans up leftover core files
@@ -59,9 +59,11 @@ To setup deployment environments, we link each environment with its own branch:
 
 The branch names don’t matter, but keep in mind we’re assuming you’re following an environment-based branching model. This setup doesn’t fit workflows like [trunk-based development](https://atlassian.com/continuous-delivery/continuous-integration/trunk-based-development).
 
+
 > Tip: We have a more detailed [step-by-step guide](./.build/docs/guide.md)
 
-1. Create a [new GitHub repository](https://github.com/new) for your project, with an initial branch (main, master, or any name).
+
+1. Create a [new GitHub repository](https://github.com/new) for your project, with an initial `main` branch.
 2. Create a [Personal Access Token](https://github.com/settings/personal-access-tokens) with access to the repository you created and Read/Write access for `actions`, `contents`, `deployments`, `secrets`, `variables`, and `workflows`.
 3. Create an environment file using the [.env template](https://github.com/lemachinarbo/comPWser/blob/main/.build/templates/.env.example) and complete all the information:
 
@@ -89,7 +91,7 @@ Select `id_github.pub` as your public SSH key when prompted.
 chmod +x ./.build/setup.sh && ./.build/setup.sh
 ```
 
-If you need multiple environments (e.g., production, staging, testing), update the `.env` accordingly and run `./.build/setup.sh` once per environment.
+If you need multiple environments (e.g., production, staging, testing), update the `.env` accordingly and run `./.build/setup.sh` **once per environment**.
 
 
 ### 3.1. What It Does

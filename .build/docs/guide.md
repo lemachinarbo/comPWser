@@ -3,16 +3,16 @@
 This guide assumes you're using DDEV for local development. Aren’t you? If not, it's time to [convert](https://ddev.com/get-started/).
 
 - [1. Part 1: Local processwire installation](#1-part-1-local-processwire-installation)
-- [1.1. Project structure](#11-project-structure)
-- [1.2. Installing Processwire](#12-installing-processwire)
+  - [1.1. Project structure](#11-project-structure)
+  - [ 1.2. Installing Processwire](#12-installing-processwire)
 - [2. Part 2: Automating deployments](#2-part-2-automating-deployments)
-- [2.1. Preparing the requirements](#21-preparing-the-requirements)
-    - [2.1.1. Github Repository](#211-github-repository)
-    - [2.1.2. Creating a .env environment file](#212-creating-a-env-environment-file)
-    - [2.1.3. Creating a Github Personal Access Token](#213-creating-a-github-personal-access-token)
-    - [2.1.4. Creating the SSH keys](#214-creating-the-ssh-keys)
-    - [2.1.5. Installing Github CLI](#215-installing-github-cli)
-- [2.2. Setuping the workflows](#22-setuping-the-workflows)
+  - [2.1. Preparing the requirements](#21-preparing-the-requirements)
+      - [2.1.1. Github Repository](#211-github-repository)
+      - [2.1.2. Creating a .env environment file](#212-creating-a-env-environment-file)
+      - [2.1.3. Creating a Github Personal Access Token](#213-creating-a-github-personal-access-token)
+      - [2.1.4. Creating the SSH keys](#214-creating-the-ssh-keys)
+      - [2.1.5. Installing Github CLI](#215-installing-github-cli)
+  - [2.2. Setuping the workflows](#22-setuping-the-workflows)
 
 
 ## 1. Part 1: Local processwire installation
@@ -83,7 +83,7 @@ And that's it! You can test your Processwire installation: https://yourwebsite.d
 
 ## 2. Part 2: Automating deployments
 
-comPWser is essentially a collection of scripts to automate the setup of a ProcessWire project, following the (Deployments guide)[https://www.baumrock.com/en/processwire/modules/rockmigrations/docs/deploy/#update-config.php] from [@baumrock](https://github.com/baumrock/).
+comPWser is essentially a collection of scripts to automate the setup of a ProcessWire project, following the [Deployments guide](https://www.baumrock.com/en/processwire/modules/rockmigrations/docs/deploy/#update-config.php) from [@baumrock](https://github.com/baumrock/).
 
 The goal: make the whole GitHub Actions setup way quicker and less annoying — no more clicking around to create secrets, variables, environments, workflows, etc.
 
@@ -110,14 +110,14 @@ So, now that you get the picture, let's get this party started:
 
 #### 2.1.1. Github Repository
 
-A GitHub repository is required for the project. Start by [creating one](https://github.com/new) if you haven't already.
+A GitHub repository is required for the project. Start by [creating one](https://github.com/new) with an initial `main` branch, if you haven't already.
 
 #### 2.1.2. Creating a .env environment file
 
-Inside the `[.build](./../../.build/)` folder, you will find the `[.env.example](../templates/.env.example)` template. Copy it to your project root and rename it to `.env`:
+Inside the `[.templates]([./../../.build/](https://github.com/lemachinarbo/comPWser/tree/main/.build/templates))` folder, you will find the `[.env.example]([../templates/.env.example](https://github.com/lemachinarbo/comPWser/blob/main/.build/templates/.env.example))` template. Copy it to your project root and rename it to `.env`:
 
 ```sh
-mv ./.build/.env.example ./.env
+mv ./.build/templates/.env.example ./.env
 ```
 
 Then open the file and edit the values. Let me walk you through it with an example.
@@ -260,6 +260,9 @@ Once it’s done, check your server’s docroot folder —you should see somethi
 This means, that in order to make tour website visible you need to update the web server configuration (from your hosting control panel) to point the `docroot` to `current` instead of the base docroot directory. This way, your website will be always serving the latest deployed release (the last thing you pushed to your branch). 
 
 After that visit yourdomain.com and enjoy a piece of [the cake](../../README.md#44-whats-with-the-cake)!
+
+> **Note:** If you have multiple environments, the setup-script currently lets you install just one at a time. So, for example, if you have `production` and `staging`, and you choose `production` in the installer, it will finish setting up that environment and then exit. You’ll need to run it again to set up `staging`.
+> 
 
 And to wrap it up: here’s a quick peek at what the installer will walk you through — just for reference.
 

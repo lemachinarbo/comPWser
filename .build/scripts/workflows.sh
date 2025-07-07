@@ -5,7 +5,7 @@
 # Source common logging/colors and env helpers
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
-WORKFLOWS_DIR="$SCRIPT_DIR/../.github/workflows"
+WORKFLOWS_DIR="$SCRIPT_DIR/../../.github/workflows"
 mkdir -p "$WORKFLOWS_DIR"
 
 # Load environments and repo info from .env
@@ -67,6 +67,8 @@ if [[ "$branch_choice" =~ ^[0-9]+$ ]] && (( branch_choice >= 1 && branch_choice 
         gh api -X POST repos/$GITHUB_OWNER/$GITHUB_REPO/git/refs -f ref="refs/heads/$NEW_BRANCH" -f sha="$BASE_SHA" >/dev/null 2>&1
         if git rev-parse --is-inside-work-tree >/dev/null 2>&1 && git remote get-url origin >/dev/null 2>&1; then
             git fetch origin "$NEW_BRANCH:$NEW_BRANCH" 2>/dev/null
+            log_ok "Branch '$NEW_BRANCH' created on remote and fetched locally."
+            log_info "To start working on it, run: git checkout $NEW_BRANCH"
         fi
         BRANCH="$NEW_BRANCH"
     else
@@ -86,22 +88,7 @@ if [ ! -f "$TEMPLATE_FILE" ]; then
 fi
 sed \
     -e "s|main|$BRANCH|g" \
-    -e "s|deploy.yaml.path|$GITHUB_OWNER/$GITHUB_REPO/.github/workflows/deploy.yaml@$BRANCH|g" \
     -e "s|Deploy|Deploy $ENV|g" \
+    -e "s|environment.name|$ENV|g" \
     "$TEMPLATE_FILE" > "$WORKFLOW_FILE"
 log_ok "Workflow for $ENV created at $WORKFLOW_FILE (triggers on branch: $BRANCH)"
-
-# Ensure deploy.yaml reusable workflow is in .github/workflows/ (do this after creating the env workflow)
-DEPLOY_WORKFLOW="$SCRIPT_DIR/../.github/workflows/deploy.yaml"
-DEPLOY_BUILD="$SCRIPT_DIR/../workflows/deploy.yaml"
-if [ ! -f "$DEPLOY_WORKFLOW" ]; then
-    if [ -f "$DEPLOY_BUILD" ]; then
-        mv "$DEPLOY_BUILD" "$DEPLOY_WORKFLOW"
-        log_ok "Moved deploy.yaml reusable workflow to .github/workflows/deploy.yaml."
-    else
-        log_error "deploy.yaml not found in workflows or .github/workflows. Please add it manually."
-        exit 1
-    fi
-else
-    log_warn "deploy.yaml workflow already present in .github/workflows."
-fi
