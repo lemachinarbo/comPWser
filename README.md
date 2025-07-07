@@ -57,13 +57,13 @@ To setup deployment environments, we link each environment with its own branch:
 - testing environment → tests/testing branch
 - And so on...
 
-The names of the branches doent matter but you have to keep in consideration we are asumming thats the model you are following. And that this setup doesnt gfit such things as [Trunk-based](https://atlassian.com/continuous-delivery/continuous-integration/trunk-based-development) workflows
+The branch names don’t matter, but keep in mind we’re assuming you’re following an environment-based branching model. This setup doesn’t fit workflows like [trunk-based development](https://atlassian.com/continuous-delivery/continuous-integration/trunk-based-development).
 
 > Tip: We have a more detailed [step-by-step guide](./.build/docs/guide.md)
 
 1. Create a [new GitHub repository](https://github.com/new) for your project, with an initial branch (main, master, or any name).
-2. Create a [Personal Access Token](https://github.com/settings/personal-access-tokens) with access to the repository you created and Read/Write access for actions, contents, deployments, secrets, variables, and workflows.
-3. Create an environment file using the `[.env template](./.build/templates/.env.example)` and complete all the information:
+2. Create a [Personal Access Token](https://github.com/settings/personal-access-tokens) with access to the repository you created and Read/Write access for `actions`, `contents`, `deployments`, `secrets`, `variables`, and `workflows`.
+3. Create an environment file using the [.env template](https://github.com/lemachinarbo/comPWser/blob/main/.build/templates/.env.example) and complete all the information:
 
 ```sh
 mv ./.build/templates/.env.example ./.env

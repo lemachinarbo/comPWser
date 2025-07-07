@@ -2,6 +2,19 @@
 
 This guide assumes you're using DDEV for local development. Aren’t you? If not, it's time to [convert](https://ddev.com/get-started/).
 
+- [1. Part 1: Local processwire installation](#1-part-1-local-processwire-installation)
+- [1.1. Project structure](#11-project-structure)
+- [1.2. Installing Processwire](#12-installing-processwire)
+- [2. Part 2: Automating deployments](#2-part-2-automating-deployments)
+- [2.1. Preparing the requirements](#21-preparing-the-requirements)
+    - [2.1.1. Github Repository](#211-github-repository)
+    - [2.1.2. Creating a .env environment file](#212-creating-a-env-environment-file)
+    - [2.1.3. Creating a Github Personal Access Token](#213-creating-a-github-personal-access-token)
+    - [2.1.4. Creating the SSH keys](#214-creating-the-ssh-keys)
+    - [2.1.5. Installing Github CLI](#215-installing-github-cli)
+- [2.2. Setuping the workflows](#22-setuping-the-workflows)
+
+
 ## 1. Part 1: Local processwire installation
 
 ### 1.1. Project structure
