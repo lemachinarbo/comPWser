@@ -60,7 +60,7 @@
       "echo '\\n==== Cleaning up ProcessWire files ====\\n'",
       "@cleanup-processwire",
       "echo 'Replacing bootstrap composer.json with clean template...'",
-      "mv -f .build/composer.template.json ./composer.json",
+      "mv -f .build/templates/composer.template.json ./composer.json",
       "echo 'Removing bootstrap composer.lock file...'",
       "rm -f composer.lock",
       "echo '\\nSetup complete!\\n'"
@@ -70,7 +70,7 @@
       "[ -f public/README.md ] && rm public/README.md || echo 'README.md not found'",
       "[ -f public/CONTRIBUTING.md ] && rm public/CONTRIBUTING.md || echo 'CONTRIBUTING.md not found'",
       "[ -f public/LICENSE.TXT ] && rm public/LICENSE.TXT || echo 'LICENSE.TXT not found'",
-      "[ -f .build/.gitignore ] && mv -f .build/.gitignore ./.gitignore || echo '.gitignore not found'",
+      "[ -f .build/templates/.gitignore.example ] && mv -f .build/templates/.gitignore.example ./.gitignore || echo '.gitignore.example not found'",
       "[ -f public/composer.json ] && rm public/composer.json || echo 'ProcessWire composer.json not found'",
       "echo 'ProcessWire cleanup complete.'"
     ]
