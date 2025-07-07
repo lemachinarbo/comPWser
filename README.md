@@ -25,7 +25,6 @@ With ComPWser you can do 2 things:
 - PHP >= 8.0
 - Unix-like environment (Linux, macOS, or WSL on Windows)* *Only tested on Linux*
 
-
 ## 2. Quick Install Processwire
 Set the `docroot` of your DDEV container to `public` by updating `docroot: public` in `./.ddev/config.yaml`, then download the Composer project file and run the install.
 
@@ -60,7 +59,9 @@ To setup deployment environments, we link each environment with its own branch:
 
 The branch names don’t matter, but keep in mind we’re assuming you’re following an environment-based branching model. This setup doesn’t fit workflows like [trunk-based development](https://atlassian.com/continuous-delivery/continuous-integration/trunk-based-development).
 
+
 > Tip: We have a more detailed [step-by-step guide](./.build/docs/guide.md)
+
 
 1. Create a [new GitHub repository](https://github.com/new) for your project, with an initial `main` branch.
 2. Create a [Personal Access Token](https://github.com/settings/personal-access-tokens) with access to the repository you created and Read/Write access for `actions`, `contents`, `deployments`, `secrets`, `variables`, and `workflows`.

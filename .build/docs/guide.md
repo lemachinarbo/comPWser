@@ -261,7 +261,6 @@ This means, that in order to make tour website visible you need to update the we
 
 After that visit yourdomain.com and enjoy a piece of [the cake](../../README.md#44-whats-with-the-cake)!
 
-
 > **Note:** If you have multiple environments, the setup-script currently lets you install just one at a time. So, for example, if you have `production` and `staging`, and you choose `production` in the installer, it will finish setting up that environment and then exit. You’ll need to run it again to set up `staging`.
 > 
 
