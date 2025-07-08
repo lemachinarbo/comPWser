@@ -16,7 +16,7 @@ With ComPWser you can do 2 things:
   - [2. Quick Install Processwire](#2-quick-install-processwire)
   - [3. Quick Auto Deployment via GitHub Actions](#3-quick-auto-deployment-via-github-actions)
   - [4. F.A.Q](#4-faq)
-  - [5. Step by step guide](./.build/docs/guide.md)
+  - [5. Step by step guide](./.build/docs/guide.md)  
   
   
 ## 1. Requirements

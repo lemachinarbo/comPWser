@@ -282,7 +282,6 @@ Remember that from now on, you just need to commit and push your changes to the 
 > **Note:** If you have multiple environments, the setup-script currently lets you install just one at a time.So, for example, if you have `production` and `staging`, and you choose `production` in the installer, it will finish setting up that environment and then exit. You’ll need to run it again to set up `staging`.
 
 
-
 And to wrap it up: here’s a quick peek at what the installer will walk you through — just for reference.
 
 ```markdown
