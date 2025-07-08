@@ -1,6 +1,6 @@
 # Step by step guide
 
-This guide assumes you're using DDEV for local development. Aren’t you? If not, it's time to [convert](https://ddev.com/get-started/).
+This guide assumes you're using DDEV for local development. Aren’t you? it's time to [convert](https://ddev.com/get-started/).
 
 - [1. Part 1: Local processwire installation](#1-part-1-local-processwire-installation)
   - [1.1. Project structure](#11-project-structure)
@@ -85,9 +85,10 @@ And that's it! You can test your Processwire installation: https://yourwebsite.d
 
 comPWser is essentially a collection of scripts to automate the setup of a ProcessWire project, following the [Deployments guide](https://www.baumrock.com/en/processwire/modules/rockmigrations/docs/deploy/#update-config.php) from [@baumrock](https://github.com/baumrock/).
 
-The goal: make the whole GitHub Actions setup way quicker and less annoying — no more clicking around to create secrets, variables, environments, workflows, etc.
+It makes GitHub Actions setup way quicker and less annoying — no more clicking around to create secrets, variables, environments, workflows, etc.
 
-> **Note:** If you've never heard of or used Deployments before, start by reading Bernhard's guide (there’s a [step-by-step video](https://www.youtube.com/watch?v=4wS7xWUtFes) included!).
+> [!NOTE]
+> If you've never heard of or used Deployments before, start by reading Bernhard's guide (there’s a [step-by-step video](https://www.youtube.com/watch?v=4wS7xWUtFes) included!).
 
 But let me pause for a sec and explain why we even bother with these deployment workflows.
 
@@ -130,7 +131,7 @@ Replace `your-username/your-repo` with your actual GitHub info.
 
 #### 2.1.2. Creating a .env environment file
 
-Inside the `[.templates]([./../../.build/](https://github.com/lemachinarbo/comPWser/tree/main/.build/templates))` folder, you will find the `[.env.example]([../templates/.env.example](https://github.com/lemachinarbo/comPWser/blob/main/.build/templates/.env.example))` template. Copy it to your project root and rename it to `.env`:
+Inside the [.templates](https://github.com/lemachinarbo/comPWser/tree/main/.build/templates) folder, you will find [.env.example](https://github.com/lemachinarbo/comPWser/blob/main/.build/templates/.env.example). Copy the file to your project root and rename it to `.env`:
 
 ```sh
 mv ./.build/templates/.env.example ./.env
@@ -205,7 +206,7 @@ Remember, you can name your environments however you like. We’re just using `P
 
 #### 2.1.3. Creating a Github Personal Access Token
 
-Go to Github's (personal access tokens)[https://github.com/settings/personal-access-tokens]  `profile > developer settings > personal acces tokens  > fine-grained tokens` and click the `generate new token` button.
+Go to Github's [personal access tokens](https://github.com/settings/personal-access-tokens) `profile > developer settings > personal acces tokens  > fine-grained tokens` and click the `generate new token` button.
 
 Choose a name for the token, set the expiration to at least 90 days and in repository access select `Only selected repositories` and choose your project repository.
 
@@ -248,7 +249,7 @@ Check the error and try again.
 GitHub CLI lets us manage a bunch of GitHub stuff right from the terminal — which means our scripts can automate the whole repo setup: creating all the required variables, secrets, environments, etc.
 (and also, probably means that the scripts are just a wrapper and it’s the GitHub CLI the one doing all the heavy lifting.)
 
-Start by installing (Github CLI)[https://github.com/cli/cli#installation]. Once installed authenticate by running:
+Start by installing [Github CLI](https://github.com/cli/cli#installation). Once installed authenticate by running:
 
 ```sh
 gh auth login
@@ -279,7 +280,8 @@ After that visit yourdomain.com and enjoy a piece of [the cake](../../README.md#
 
 Remember that from now on, you just need to commit and push your changes to the branch of the environment you want to update, and your changes go live automatically.
 
-> **Note:** If you have multiple environments, the setup-script currently lets you install just one at a time.So, for example, if you have `production` and `staging`, and you choose `production` in the installer, it will finish setting up that environment and then exit. You’ll need to run it again to set up `staging`.
+> [!NOTE]
+> If you have multiple environments, the setup-script currently lets you install just one at a time.So, for example, if you have `production` and `staging`, and you choose `production` in the installer, it will finish setting up that environment and then exit. You’ll need to run it again to set up `staging`.
 
 
 And to wrap it up: here’s a quick peek at what the installer will walk you through — just for reference.
