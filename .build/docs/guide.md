@@ -110,7 +110,23 @@ So, now that you get the picture, let's get this party started:
 
 #### 2.1.1. Github Repository
 
-A GitHub repository is required for the project. Start by [creating one](https://github.com/new) with an initial `main` branch, if you haven't already.
+A GitHub repository is required for the project. Start by [creating one](https://github.com/new) — make sure it includes an initial `main` branch.
+
+Once created, link it to your local project and push your code:
+
+> [!NOTE]
+> We’re skipping git init because the Composer installer already initialized the repo for us.
+
+```sh
+# Inside your project folder
+git remote add origin https://github.com/your-username/your-repo.git
+git add .
+git commit -m "Initial commit"
+git push -u origin main
+```
+
+Replace `your-username/your-repo` with your actual GitHub info.
+
 
 #### 2.1.2. Creating a .env environment file
 
@@ -261,8 +277,10 @@ This means, that in order to make tour website visible you need to update the we
 
 After that visit yourdomain.com and enjoy a piece of [the cake](../../README.md#44-whats-with-the-cake)!
 
-> **Note:** If you have multiple environments, the setup-script currently lets you install just one at a time. So, for example, if you have `production` and `staging`, and you choose `production` in the installer, it will finish setting up that environment and then exit. You’ll need to run it again to set up `staging`.
-> 
+Remember that from now on, you just need to commit and push your changes to the branch of the environment you want to update, and your changes go live automatically.
+
+> **Note:** If you have multiple environments, the setup-script currently lets you install just one at a time.So, for example, if you have `production` and `staging`, and you choose `production` in the installer, it will finish setting up that environment and then exit. You’ll need to run it again to set up `staging`.
+
 
 And to wrap it up: here’s a quick peek at what the installer will walk you through — just for reference.
 
