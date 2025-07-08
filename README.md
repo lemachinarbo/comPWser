@@ -10,15 +10,15 @@ With ComPWser you can do 2 things:
 3. Nop, only two.
 
 
-## 0. Contents
+**Contents**
 
   - [1. Requirements](#1-requirements)
   - [2. Quick Install Processwire](#2-quick-install-processwire)
   - [3. Quick Auto Deployment via GitHub Actions](#3-quick-auto-deployment-via-github-actions)
   - [4. F.A.Q](#4-faq)
   - [5. Step by step guide](./.build/docs/guide.md)
-
-
+  
+  
 ## 1. Requirements
 - DDEV
 - Composer (Included by default with DDEV)
@@ -59,12 +59,15 @@ To setup deployment environments, we link each environment with its own branch:
 
 The branch names don’t matter, but keep in mind we’re assuming you’re following an environment-based branching model. This setup doesn’t fit workflows like [trunk-based development](https://atlassian.com/continuous-delivery/continuous-integration/trunk-based-development).
 
+> [!TIP]
+> We have a more detailed [step-by-step guide](./.build/docs/guide.md)
 
-> Tip: We have a more detailed [step-by-step guide](./.build/docs/guide.md)
+### Steps
 
+1. Create a [new GitHub repository](https://github.com/new) for your project, with an initial `main` branch. Then, add it as a remote to your local repo and push your ProcessWire project to it.
 
-1. Create a [new GitHub repository](https://github.com/new) for your project, with an initial `main` branch.
 2. Create a [Personal Access Token](https://github.com/settings/personal-access-tokens) with access to the repository you created and Read/Write access for `actions`, `contents`, `deployments`, `secrets`, `variables`, and `workflows`.
+
 3. Create an environment file using the [.env template](https://github.com/lemachinarbo/comPWser/blob/main/.build/templates/.env.example) and complete all the information:
 
 ```sh
@@ -85,16 +88,21 @@ gh auth login
 
 Select `id_github.pub` as your public SSH key when prompted.
 
-6. Run the installer and follow the steps to create an environment. The name is up to you — `production`, `staging`, `stage`, `prod`, `dev`, `test`, whatever.
+6. Run the installer and follow the steps to create an environment. The name is up to you — `production`, `staging`, `stage`, `prod`, `dev`, `test`, whatever suits you.
 
 ```sh
 chmod +x ./.build/setup.sh && ./.build/setup.sh
 ```
 
-If you need multiple environments (e.g., production, staging, testing), update the `.env` accordingly and run `./.build/setup.sh` **once per environment**.
+> [!IMPORTANT]
+> If you need multiple environments (e.g., production, staging, testing), update the `.env` accordingly and run `./.build/setup.sh` **once per environment**.
+
+Once the installer finishes, check your site in the browser.
+From now on, just commit and push to the branch for the environment you want to update — your changes go live automatically.
 
 
 ### 3.1. What It Does
+- Prompts you at each step so you can skip or rerun any part of the setup
 - Checks for all requirements: `.env` file, SSH keys, GitHub CLI, and repository access
 - Offers to generate missing SSH keys and register them with your server
 - Sets up GitHub Actions variables and secrets for your chosen environment
@@ -103,10 +111,8 @@ If you need multiple environments (e.g., production, staging, testing), update t
 - Syncs all project files—including ProcessWire, RockShell, and modules—to your remote server
 - Imports your local database to the server for the selected environment
 - Updates the server folder structure and permissions for automated deployments
-- Prompts you at each step so you can skip or rerun any part of the setup
 
-
-What's next? Check what else you can do when [moving to production](https://www.baumrock.com/en/processwire/modules/rockmigrations/docs/deploy/#rockshell-filesondemand).
+Where to go next? Check what else you can do when [moving to production](https://www.baumrock.com/en/processwire/modules/rockmigrations/docs/deploy/#rockshell-filesondemand) for tips on how to handle files, images, etc.
 
 Nice. Time to enjoy some cake.
 
